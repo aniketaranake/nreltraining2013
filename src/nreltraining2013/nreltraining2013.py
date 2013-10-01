@@ -181,6 +181,7 @@ class AutoBEM(BEM):
         self.connect('twist_tip', 'twist_dist.end')
         self.connect('pitch', 'twist_dist.offset')
 
+        self.driver.workflow.add('chord_dist')
         self.driver.workflow.add('radius_dist')
         self.driver.workflow.add('twist_dist')
 
