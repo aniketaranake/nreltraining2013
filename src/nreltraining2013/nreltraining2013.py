@@ -7,7 +7,7 @@ from scipy.optimize import fsolve
 from scipy.interpolate import interp1d
 
 from openmdao.main.api import Component, Assembly, VariableTree
-from openmdao.lib.datatypes.api import Float, Int, Array, Slot
+from openmdao.lib.datatypes.api import Float, Int, Array, VarTree
 from openmdao.lib.components.api import LinearDistribution
 
 
@@ -69,9 +69,9 @@ class BEMPerf(Component):
     r = Float(.8, iotype="in", desc="tip radius of the rotor", units="m")
     rpm = Float(2100, iotype="in", desc="rotations per minute", low=0, units="min**-1")
 
-    free_stream = Slot(FlowConditions, iotype="in") 
+    free_stream = VarTree(FlowConditions(), iotype="in") 
 
-    data = Slot(BEMPerfData, iotype="out")
+    data = VarTree(BEMPerfData(), iotype="out")
 
     #this lets the size of the arrays vary for different numbers of elements
     def __init__(self, n=10):
@@ -123,7 +123,7 @@ class BEM(Assembly):
     B = Int(3, iotype="in", desc="number of blades", low=1)
 
     #wind condition inputs
-    free_stream = Slot(FlowConditions, iotype="in") 
+    free_stream = VarTree(FlowConditions(), iotype="in") 
 
     def __init__(self): 
         super(BEM, self).__init__()
@@ -295,8 +295,8 @@ if __name__ == "__main__":
     top.add('b', AutoBEM())
     top.driver.workflow.add('b')
 
-    #top.run()
-
+    top.run()
+    exit()
     print top.b.rpm
     print top.b.data.Cp
     print 'top.b.chord_hub: ', top.b.chord_hub
@@ -308,7 +308,8 @@ if __name__ == "__main__":
     print top.b.BE3.r, top.b.BE3.sigma, top.b.BE3.chord
     print top.b.BE4.r, top.b.BE4.sigma, top.b.BE4.chord
     print top.b.BE5.r, top.b.BE5.sigma, top.b.BE5.chord
-    
+
+
     from openmdao.lib.drivers.api import SLSQPdriver
     top.add('driver', SLSQPdriver())
     top.driver.add_parameter('b.chord_hub', low=.1, high=2)
@@ -319,7 +320,6 @@ if __name__ == "__main__":
     top.driver.add_parameter('b.r_tip', low=1, high=10)
 
     top.driver.add_objective('-b.data.Cp')
-
 
     top.run()
     print 
