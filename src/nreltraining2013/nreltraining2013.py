@@ -296,7 +296,6 @@ if __name__ == "__main__":
     top.driver.workflow.add('b')
 
     top.run()
-    exit()
     print top.b.rpm
     print top.b.data.Cp
     print 'top.b.chord_hub: ', top.b.chord_hub
@@ -310,6 +309,7 @@ if __name__ == "__main__":
     print top.b.BE5.r, top.b.BE5.sigma, top.b.BE5.chord
 
 
+    exit()
     from openmdao.lib.drivers.api import SLSQPdriver
     top.add('driver', SLSQPdriver())
     top.driver.add_parameter('b.chord_hub', low=.1, high=2)
