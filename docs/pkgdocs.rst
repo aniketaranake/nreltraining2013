@@ -13,19 +13,31 @@ Package Metadata
 - **entry_points**:: 
 
     [openmdao.component]
+    nreltraining2013.BEM.AutoBEM=nreltraining2013.BEM:AutoBEM
+    nreltraining2013.nreltraining2013.BladeElement=nreltraining2013.nreltraining2013:BladeElement
+    nreltraining2013.BEM.BladeElement=nreltraining2013.BEM:BladeElement
     nreltraining2013.nreltraining2013.BEMPerf=nreltraining2013.nreltraining2013:BEMPerf
     nreltraining2013.nreltraining2013.ActuatorDisk=nreltraining2013.nreltraining2013:ActuatorDisk
     nreltraining2013.nreltraining2013.BEM=nreltraining2013.nreltraining2013:BEM
-    nreltraining2013.nreltraining2013.BladeElement=nreltraining2013.nreltraining2013:BladeElement
+    nreltraining2013.BEM.BEMPerf=nreltraining2013.BEM:BEMPerf
+    nreltraining2013.BEM.BEM=nreltraining2013.BEM:BEM
     nreltraining2013.nreltraining2013.AutoBEM=nreltraining2013.nreltraining2013:AutoBEM
+    nreltraining2013.BEM.ActuatorDisk=nreltraining2013.BEM:ActuatorDisk
     [openmdao.container]
-    nreltraining2013.nreltraining2013.BEMPerfData=nreltraining2013.nreltraining2013:BEMPerfData
+    nreltraining2013.BEM.AutoBEM=nreltraining2013.BEM:AutoBEM
+    nreltraining2013.nreltraining2013.BladeElement=nreltraining2013.nreltraining2013:BladeElement
+    nreltraining2013.BEM.BEMPerfData=nreltraining2013.BEM:BEMPerfData
     nreltraining2013.nreltraining2013.BEMPerf=nreltraining2013.nreltraining2013:BEMPerf
+    nreltraining2013.BEM.FlowConditions=nreltraining2013.BEM:FlowConditions
     nreltraining2013.nreltraining2013.ActuatorDisk=nreltraining2013.nreltraining2013:ActuatorDisk
     nreltraining2013.nreltraining2013.FlowConditions=nreltraining2013.nreltraining2013:FlowConditions
-    nreltraining2013.nreltraining2013.BladeElement=nreltraining2013.nreltraining2013:BladeElement
+    nreltraining2013.BEM.BEMPerf=nreltraining2013.BEM:BEMPerf
+    nreltraining2013.BEM.BEM=nreltraining2013.BEM:BEM
     nreltraining2013.nreltraining2013.AutoBEM=nreltraining2013.nreltraining2013:AutoBEM
     nreltraining2013.nreltraining2013.BEM=nreltraining2013.nreltraining2013:BEM
+    nreltraining2013.nreltraining2013.BEMPerfData=nreltraining2013.nreltraining2013:BEMPerfData
+    nreltraining2013.BEM.BladeElement=nreltraining2013.BEM:BladeElement
+    nreltraining2013.BEM.ActuatorDisk=nreltraining2013.BEM:ActuatorDisk
 
 - **keywords:** openmdao
 

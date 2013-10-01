@@ -7,14 +7,27 @@ Source Documentation
 ====================
 
         
+.. index:: BEM.py
+
+.. _nreltraining2013.BEM.py:
+
+BEM.py
+------
+
+.. automodule:: nreltraining2013.BEM
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+        
 .. index:: nreltraining2013.py
 
-.. _src.nreltraining2013.nreltraining2013.py:
+.. _nreltraining2013.nreltraining2013.py:
 
 nreltraining2013.py
 -------------------
 
-.. automodule:: src.nreltraining2013.nreltraining2013
+.. automodule:: nreltraining2013.nreltraining2013
    :members:
    :undoc-members:
    :show-inheritance:
@@ -22,12 +35,12 @@ nreltraining2013.py
         
 .. index:: test_nreltraining.py
 
-.. _src.nreltraining2013.test.test_nreltraining.py:
+.. _nreltraining2013.test.test_nreltraining.py:
 
 test_nreltraining.py
 --------------------
 
-.. automodule:: src.nreltraining2013.test.test_nreltraining
+.. automodule:: nreltraining2013.test.test_nreltraining
    :members:
    :undoc-members:
    :show-inheritance:
