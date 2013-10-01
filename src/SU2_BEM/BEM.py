@@ -130,30 +130,26 @@ class BladeElement(Component):
         self.lambda_r = self.omega*self.r/self.V_inf # need lambda_r for iterates
 
         # Flow angle 
-        self.phi   = np.arctan(self.lambda_r*(1+b_in)/(1-a_in))
+        self.phi   = np.arctan(self.lambda_r*(1+self.b_in)/(1-self.a_in))
 
         # Angle of attack
         self.alpha = pi/2-self.twist-self.phi
 
         # Recompute induction factors for given flow angle
-        self.a_out = 1./(1 + 4.*(np.cos(self.phi)**2)/(self.sigma*C_L*np.sin(self.phi)))
-        self.b_out = (self.sigma*C_L) / (4* self.lambda_r * np.cos(self.phi)) * (1 - self.a)
+        self.a_out = 1./(1 + 4.*(np.cos(self.phi)**2)/(self.sigma*self.C_l*np.sin(self.phi)))
+        self.b_out = (self.sigma*self.C_l) / (4* self.lambda_r * np.cos(self.phi)) * (1 - self.a_in)
 
         # Decompose velocity into components
-        self.V_0 = self.V_inf - self.a*self.V_inf
-        self.V_2 = omega_r-self.b*omega_r
+        self.V_0 = self.V_inf - self.a_out*self.V_inf
+        self.V_2 = omega_r-self.b_out*omega_r
         self.V_1 = (self.V_0**2+self.V_2**2)**.5
 
         # Compute contribution to performance measures
         q_c           = self.B*.5*(self.rho*self.V_1**2)*self.chord*self.dr
         cos_phi       = cos(self.phi)
         sin_phi       = sin(self.phi)
-        self.delta_Ct = q_c*(C_L*cos_phi-C_D*sin_phi)/(.5*self.rho*(self.V_inf**2)*(pi*self.r**2))
-        self.delta_Cp = self.b*(1-self.a)*self.lambda_r**3*(1-C_D/C_L*tan(self.phi))
-
-    def _iteration(self, X):
-
-        return (X[0]-self.a), (X[1]-self.b)
+        self.delta_Ct = q_c*(self.C_l*cos_phi-self.C_d*sin_phi)/(.5*self.rho*(self.V_inf**2)*(pi*self.r**2))
+        self.delta_Cp = self.b_out*(1-self.a_out)*self.lambda_r**3*(1-self.C_d/self.C_l*tan(self.phi))
 
 
 class BEM(Assembly):
@@ -176,6 +172,11 @@ class BEM(Assembly):
     def __init__(self, n_elements=6):
         self._n_elements = n_elements
         super(BEM, self).__init__()
+
+        # Add params that depend on n_elem
+        self.add('alphas',   Array(np.zeros([n_elements]),size=[n_elements],iotype="out"))
+        self.add('cl_array', Array(np.zeros([n_elements]),size=[n_elements],iotype="in"))
+        self.add('cd_array', Array(np.zeros([n_elements]),size=[n_elements],iotype="in"))
 
     def configure(self):
 
@@ -216,6 +217,8 @@ class BEM(Assembly):
             self.connect('radius_dist.delta', name+'.dr')
             self.connect('twist_dist.output[%d]'%i, name+'.twist')
             self.connect('chord_dist.output[%d]'%i, name+".chord")
+            self.connect('cl_array[%d]'%i, name+".C_l")
+            self.connect('cd_array[%d]'%i, name+".C_d")
 
             self.connect('B', name+'.B')
             self.connect('rpm', name+'.rpm')
@@ -226,6 +229,8 @@ class BEM(Assembly):
 
             self.connect(name+'.delta_Cp', 'perf.delta_Cp[%d]'%i)
             self.connect(name+'.lambda_r', 'perf.lambda_r[%d]'%i)
+
+            self.connect(name+'.alpha', 'alphas[%d]'%i)
 
         self.driver.workflow.add('perf')
 
@@ -251,8 +256,12 @@ if __name__ == "__main__":
     top.driver.add_parameter('b.chord_tip', low=.5, high=2)
     top.driver.add_parameter('b.twist_hub', low=-5, high=50)
     top.driver.add_parameter('b.twist_tip', low=-5, high=50)
-    top.driver.add_parameter('b.rpm', low=10, high=200)
-    top.driver.add_parameter('b.r_tip', low=1, high=10)
+
+    print [i for i in dir(top.driver)]
+    exit()
+
+    #top.driver.add_parameter('b.rpm', low=10, high=200)
+    #top.driver.add_parameter('b.r_tip', low=1, high=10)
     #top.driver.recorders =[DumpCaseRecorder()]
 
     top.driver.add_objective('-b.data[3]')
@@ -265,8 +274,3 @@ if __name__ == "__main__":
     print 'top.b.chord_tip: ', top.b.chord_tip
     print 'top.b.twist_hub: ', top.b.twist_hub
     print 'top.b.twist_tip: ', top.b.twist_tip
-    
-
-
-
-
