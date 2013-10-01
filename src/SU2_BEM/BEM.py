@@ -10,11 +10,13 @@ from openmdao.main.api import Component, Assembly, VariableTree
 from openmdao.lib.datatypes.api import Float, Int, Array, VarTree
 from openmdao.lib.components.api import LinearDistribution
 
+import sys
+sys.path.append('../SU2_CLCD')
+from su2_clcd import SU2_CLCD
 
 class FlowConditions(VariableTree):     
     rho = Float(1.225, desc="air density", units="kg/m**3")
-    V = Float(7., desc="free stream air velocity", units="m/s")
-
+    V   = Float(7., desc="free stream air velocity", units="m/s")
 
 #Note, not being used right now
 class BEMPerfData(VariableTree):
@@ -31,7 +33,7 @@ class BEMPerfData(VariableTree):
 class BEMPerf(Component):
     """collects data from set of BladeElements and calculates aggregate values"""
 
-    r = Float(.8, iotype="in", desc="tip radius of the rotor", units="m")
+    r   = Float(.8, iotype="in", desc="tip radius of the rotor", units="m")
     rpm = Float(2100, iotype="in", desc="rotations per minute", low=0, units="min**-1")
 
     free_stream = VarTree(FlowConditions(), iotype="in") 
@@ -87,78 +89,69 @@ class BEMPerf(Component):
 class BladeElement(Component):
     """Calculations for a single radial slice of a rotor blade"""
 
-    #inputs
-    a_init = Float(0.2, iotype="in", desc="initial guess for axial inflow factor")
-    b_init = Float(0.01, iotype="in", desc="initial guess for angular inflow factor")
-    rpm = Float(106.952, iotype="in", desc="rotations per minute", low=0, units="min**-1")
-    r = Float(5., iotype="in", desc="mean radius of the blade element", units="m")
-    dr = Float(1., iotype="in", desc="width of the blade element", units="m")
-    twist = Float(1.616, iotype="in", desc="local twist angle", units="rad")
+    # Inputs - design variables
+    a_in  = Float(0.2,      iotype="in", desc="Axial induction factor (input to BEM)")
+    b_in  = Float(0.01,     iotype="in", desc="Angular induction factor (input to BEM)")
+    twist = Float(1.616,    iotype="in", desc="local twist angle", units="rad")
     chord = Float(.1872796, iotype="in", desc="local chord length", units="m", low=0)
-    B = Int(3, iotype="in", desc="Number of blade elements")
+    C_l   = Float(0.4,      iotype="in", desc="section lift coefficient")
+    C_d   = Float(0.02,     iotype="in", desc="section lift coefficient")
 
-    rho = Float(1.225, iotype="in", desc="air density", units="kg/m**3")
+    # Inputs - nondesign variables
+    rpm   = Float(106.952, iotype="in", desc="rotations per minute", low=0, units="min**-1")
+    r     = Float(5., iotype="in", desc="mean radius of the blade element", units="m")
+    dr    = Float(1., iotype="in", desc="width of the blade element", units="m")
+    B     = Int(3, iotype="in", desc="Number of blade elements")
+    rho   = Float(1.225, iotype="in", desc="air density", units="kg/m**3")
     V_inf = Float(7, iotype="in", desc="free stream air velocity", units="m/s")
 
+    # outputs 
+    alpha = Float(iotype="out", desc="Angle of attack")
+    a_out = Float(iotype="out", desc="Axial indcution factor (Output from BEM)")
+    b_out = Float(iotype="out", desc="Angular induction factor (Output from BEM")
 
-    C_L = Array([0, 1.3, .8, .7, 1.1], size=(5,), iotype="in", desc="Section lift coefficients at alphas: [0., 13., 15, 20, 30]")
-    C_D = Array([0., 0., 0.3, 0.6, 1.], size=(5,), iotype="in", desc="Section drag coefficients at alphas: [0., 13., 15, 20, 30]")
-
-    #outputs
-    V_0 = Float(iotype="out", desc="axial flow at propeller disk", units="m/s")
-    V_1 = Float(iotype="out", desc="local flow velocity", units="m/s")
-    V_2 = Float(iotype="out", desc="angular flow at propeller disk", units="m/s")
-    omega = Float(iotype="out", desc="average angular velocity for element", units="rad/s")
-    sigma = Float(iotype="out", desc="Local solidity")
-    alpha = Float(iotype="out", desc="local angle of attack", units="rad")
+    # Other outputs
+    V_0      = Float(iotype="out", desc="axial flow at propeller disk", units="m/s")
+    V_1      = Float(iotype="out", desc="local flow velocity", units="m/s")
+    V_2      = Float(iotype="out", desc="angular flow at propeller disk", units="m/s")
+    omega    = Float(iotype="out", desc="average angular velocity for element", units="rad/s")
+    sigma    = Float(iotype="out", desc="Local solidity")
     delta_Ct = Float(iotype="out", desc="section thrust coefficient", units="N")
     delta_Cp = Float(iotype="out", desc="section power coefficent")
-    a = Float(iotype="out", desc="converged value for axial inflow factor")
-    b = Float(iotype="out", desc="converged value for radial inflow factor")
     lambda_r = Float(8, iotype="out", desc="local tip speed ratio")
-    phi = Float(1.487, iotype="out", desc="relative flow angle onto blades", units="rad")
-
- 
-    def _coeff_lookup(self, i):
-        C_L = self.cl_interp(i)
-        C_D = self.cd_interp(i)    
-        return C_D, C_L
+    phi      = Float(1.487, iotype="out", desc="relative flow angle onto blades", units="rad")
         
     def execute(self):  
 
-        self.sigma = self.B*self.chord / (2* np.pi * self.r)
-        self.omega = self.rpm*2*pi/60.0
-        omega_r = self.omega*self.r
+        # Compute local tip speed ratio 
+        self.sigma    = self.B*self.chord / (2* np.pi * self.r)
+        self.omega    = self.rpm*2*pi/60.0
+        omega_r       = self.omega*self.r
         self.lambda_r = self.omega*self.r/self.V_inf # need lambda_r for iterates
 
-        #linear interpolation from airfoil data
-        rad = np.array([0., 13., 15, 20, 30])*pi/180
-        self.cl_interp = interp1d(rad, self.C_L, fill_value=0.001, bounds_error=False)
+        # Flow angle 
+        self.phi   = np.arctan(self.lambda_r*(1+b_in)/(1-a_in))
 
-        rad = np.array([0., 10, 20, 30, 40])*pi/180
-        self.cd_interp = interp1d(rad, self.C_D, fill_value=0.001, bounds_error=False)
+        # Angle of attack
+        self.alpha = pi/2-self.twist-self.phi
 
-        result = fsolve(self._iteration, [self.a_init, self.b_init])
-        self.a = result[0]
-        self.b = result[1]
+        # Recompute induction factors for given flow angle
+        self.a_out = 1./(1 + 4.*(np.cos(self.phi)**2)/(self.sigma*C_L*np.sin(self.phi)))
+        self.b_out = (self.sigma*C_L) / (4* self.lambda_r * np.cos(self.phi)) * (1 - self.a)
 
+        # Decompose velocity into components
         self.V_0 = self.V_inf - self.a*self.V_inf
         self.V_2 = omega_r-self.b*omega_r
         self.V_1 = (self.V_0**2+self.V_2**2)**.5
 
-        q_c = self.B*.5*(self.rho*self.V_1**2)*self.chord*self.dr
-        cos_phi = cos(self.phi)
-        sin_phi = sin(self.phi)
-        C_D, C_L = self._coeff_lookup(self.alpha)
+        # Compute contribution to performance measures
+        q_c           = self.B*.5*(self.rho*self.V_1**2)*self.chord*self.dr
+        cos_phi       = cos(self.phi)
+        sin_phi       = sin(self.phi)
         self.delta_Ct = q_c*(C_L*cos_phi-C_D*sin_phi)/(.5*self.rho*(self.V_inf**2)*(pi*self.r**2))
         self.delta_Cp = self.b*(1-self.a)*self.lambda_r**3*(1-C_D/C_L*tan(self.phi))
 
     def _iteration(self, X):
-        self.phi = np.arctan(self.lambda_r*(1+X[1])/(1-X[0]))
-        self.alpha = pi/2-self.twist-self.phi
-        C_D, C_L = self._coeff_lookup(self.alpha)
-        self.a = 1./(1 + 4.*(np.cos(self.phi)**2)/(self.sigma*C_L*np.sin(self.phi)))
-        self.b = (self.sigma*C_L) / (4* self.lambda_r * np.cos(self.phi)) * (1 - self.a)
 
         return (X[0]-self.a), (X[1]-self.b)
 
@@ -166,18 +159,18 @@ class BladeElement(Component):
 class BEM(Assembly):
     """Blade Rotor with user specified number BladeElements"""
 
-    #physical properties inputs
-    r_hub = Float(0.2, iotype="in", desc="blade hub radius", units="m", low=0)
+    # Physical properties 
+    r_hub     = Float(0.2, iotype="in", desc="blade hub radius", units="m", low=0)
     twist_hub = Float(29, iotype="in", desc="twist angle at the hub radius", units="deg")
     chord_hub = Float(.7, iotype="in", desc="chord length at the rotor hub", units="m", low=.05)
-    r_tip = Float(5, iotype="in", desc="blade tip radius", units="m")
+    r_tip     = Float(5, iotype="in", desc="blade tip radius", units="m")
     twist_tip = Float(-3.58, iotype="in", desc="twist angle at the tip radius", units="deg")
     chord_tip = Float(.187, iotype="in", desc="chord length at the rotor hub", units="m", low=.05)
-    pitch = Float(0, iotype="in", desc="overall blade pitch", units="deg")
-    rpm = Float(107, iotype="in", desc="rotations per minute", low=0, units="min**-1")
-    B = Int(3, iotype="in", desc="number of blades", low=1)
+    pitch     = Float(0, iotype="in", desc="overall blade pitch", units="deg")
+    rpm       = Float(107, iotype="in", desc="rotations per minute", low=0, units="min**-1")
+    B         = Int(3, iotype="in", desc="number of blades", low=1)
 
-    #wind condition inputs
+    # Wind condition
     free_stream = VarTree(FlowConditions(), iotype="in") 
 
     def __init__(self, n_elements=6):
@@ -236,9 +229,6 @@ class BEM(Assembly):
 
         self.driver.workflow.add('perf')
 
-
-
-
 if __name__ == "__main__":
     
     top = Assembly()
@@ -254,8 +244,6 @@ if __name__ == "__main__":
     print 'top.b.twist_hub: ', top.b.twist_hub
     print 'top.b.twist_tip: ', top.b.twist_tip
 
-    
-    
     from openmdao.lib.drivers.api import SLSQPdriver
     from openmdao.lib.casehandlers.api import DumpCaseRecorder
     top.add('driver', SLSQPdriver())
