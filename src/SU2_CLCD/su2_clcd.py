@@ -1,8 +1,10 @@
 from openmdao.lib.datatypes.api import Float, Int, Array, VarTree
 from math import pi
+from SU2.SU2_wrapper import Solve
 
 
-class SU2_CLCD(Component):
+
+class SU2_CLCD(Solve):
 	
 	"""Calculate the coefficient of lift and the coefficient of drag from SU2"""
 
@@ -16,4 +18,9 @@ class SU2_CLCD(Component):
 		if kind == "Fake_SU2":
 			self.coefficientOfLift = 2 * pi * self.alpha
 			self.coefficientOfDrag = .00002 * pi * pi * self.alpha
+		if kind == "SU2":
+			super(SU2_CLCD, self).execute()
+			coefficientOfLift = self.LIFT
+			coefficientOfDrag = self.DRAG			
+
 
