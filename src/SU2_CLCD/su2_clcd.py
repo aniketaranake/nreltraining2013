@@ -9,7 +9,7 @@ class SU2_CLCD(Solve):
 	"""Calculate the coefficient of lift and the coefficient of drag from SU2"""
 
 	kind = "Fake_SU2"
-	alpha = Float(2, iotype="in",desc="angle of attack of the airfoil section", units="degrees")
+	alpha = Float(2, iotype="in",desc="angle of attack of the airfoil section", units="deg")
 
 	coefficientOfLift = Float(iotype="out", desc="coefficient of lift from the airfoil section at that angle of attack")
 	coefficientOfDrag = Float(iotype="out", desc="coefficient of lift from the airfoil section at that angle of attack")
@@ -23,4 +23,6 @@ class SU2_CLCD(Solve):
 			coefficientOfLift = self.LIFT
 			coefficientOfDrag = self.DRAG			
 
+if __name__ == "__main__":
+	print "Hello, world!"
 
