@@ -1,6 +1,6 @@
 from openmdao.lib.datatypes.api import Float, Int, Array, VarTree
 from math import pi
-from SU2.SU2_wrapper import Solve
+from SU2_wrapper import Solve
 
 
 
