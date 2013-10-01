@@ -1,8 +1,7 @@
 from openmdao.lib.datatypes.api import Float, Int, Array, VarTree
 from math import pi
 from SU2_wrapper import Solve
-
-
+from openmdao.main.api import Component
 
 class SU2_CLCD(Solve):
 	
@@ -22,6 +21,28 @@ class SU2_CLCD(Solve):
 			super(SU2_CLCD, self).execute()
 			coefficientOfLift = self.LIFT
 			coefficientOfDrag = self.DRAG			
+
+class SU2_CLCD_Sections(Assembly):
+	#nElems = Int(-1,iotype="in",desc="number of blade sections")
+
+
+
+	def __init__(self, nElems = 6):
+		super(SU2_CLCD_Sections, self).__init__()
+		self.nElems = nElems
+		self.add("alphas",Array(np.zeros([self.nElems,]), shape=[self.nElems,],iotype="in"))
+		self.add("cls",Array(np.zeros([self.nElems,]), shape=[self.nElems,],iotype="in"))
+		self.add("cds",Array(np.zeros([self.nElems,]), shape=[self.nElems,],iotype="in"))
+
+	def configure(self):
+		for i in range(self.nElems):
+			su2comp = "SU2_%d"%i
+			self.add(su2comp, SU2_CLCD())
+			self.connect("alpha[%d]"%i, su2comp+".alpha")
+			self.connect("cls[%d]"%i, su2comp+".coefficientOfLift")
+			self.connect("cds[%d]"%i, su2comp+".coefficientOfDrag")
+			self.driver.workflow.add(su2comp)
+
 
 if __name__ == "__main__":
 	print "Hello, world!"
