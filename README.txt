@@ -1,6 +1,6 @@
-README.txt file for nreltraining2013.
+README.txt file for SU2_CFD example problem.
 
 To view the Sphinx documentation for this distribution, type:
 
-plugin docs nreltraining2013
+plugin docs SU2_CFD
 

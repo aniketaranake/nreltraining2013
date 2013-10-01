@@ -2,7 +2,7 @@
 import unittest
 
 
-class ActuatorDiskTestCase(unittest.TestCase):
+class BEMTestCase(unittest.TestCase):
 
     def setUp(self):
         pass

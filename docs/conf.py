@@ -17,7 +17,7 @@ def _sys_path_add(toadd=None):
         distdir = os.path.dirname(os.path.dirname(__file__))
         sys.path = [distdir] + [os.path.join(distdir, p) for p in toadd] + sys.path
 
-_sys_path_add(['src', 'src/nreltraining2013', 'src/nreltraining2013/test'])
+_sys_path_add(['src', 'src/SU2_BEM', 'src/SU2_BEM/test'])
 
 # General configuration
 # ---------------------
@@ -42,7 +42,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'nreltraining2013'
+project = u'SU2_BEM'
 copyright = u''
 
 # The version info for the project you're documenting, acts as replacement for
