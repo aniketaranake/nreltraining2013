@@ -174,9 +174,14 @@ class BEM(Assembly):
         super(BEM, self).__init__()
 
         # Add params that depend on n_elem
-        self.add('alphas',   Array(np.zeros([n_elements]),size=[n_elements],iotype="out"))
-        self.add('cl_array', Array(np.zeros([n_elements]),size=[n_elements],iotype="in"))
-        self.add('cd_array', Array(np.zeros([n_elements]),size=[n_elements],iotype="in"))
+        self.add('a_in_array', Array(np.zeros([n_elements]),size=[n_elements],iotype="in"))
+        self.add('b_in_array', Array(np.zeros([n_elements]),size=[n_elements],iotype="in"))
+        self.add('cl_array',   Array(np.zeros([n_elements]),size=[n_elements],iotype="in"))
+        self.add('cd_array',   Array(np.zeros([n_elements]),size=[n_elements],iotype="in"))
+
+        self.add('a_out_array', Array(np.zeros([n_elements]),size=[n_elements],iotype="out"))
+        self.add('b_out_array', Array(np.zeros([n_elements]),size=[n_elements],iotype="out"))
+        self.add('alphas',     Array(np.zeros([n_elements]),size=[n_elements],iotype="out"))
 
     def configure(self):
 
@@ -217,8 +222,13 @@ class BEM(Assembly):
             self.connect('radius_dist.delta', name+'.dr')
             self.connect('twist_dist.output[%d]'%i, name+'.twist')
             self.connect('chord_dist.output[%d]'%i, name+".chord")
+
+            self.connect('a_in_array[%d]'%i, name+".a_in")
+            self.connect('b_in_array[%d]'%i, name+".b_in")
             self.connect('cl_array[%d]'%i, name+".C_l")
             self.connect('cd_array[%d]'%i, name+".C_d")
+            self.connect(name+".a_out", 'a_out_array[%d]'%i)
+            self.connect(name+".b_out",'b_out_array[%d]'%i)
 
             self.connect('B', name+'.B')
             self.connect('rpm', name+'.rpm')

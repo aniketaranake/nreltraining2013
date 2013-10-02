@@ -1,7 +1,8 @@
 from openmdao.lib.datatypes.api import Float, Int, Array, VarTree
 from math import pi
 from SU2_wrapper import Solve
-from openmdao.main.api import Component
+from openmdao.main.api import Component, Assembly
+import numpy as np
 
 class SU2_CLCD(Solve):
 	
@@ -14,10 +15,10 @@ class SU2_CLCD(Solve):
 	coefficientOfDrag = Float(iotype="out", desc="coefficient of lift from the airfoil section at that angle of attack")
 
 	def execute(self):
-		if kind == "Fake_SU2":
+		if self.kind == "Fake_SU2":
 			self.coefficientOfLift = 2 * pi * self.alpha
 			self.coefficientOfDrag = .00002 * pi * pi * self.alpha
-		if kind == "SU2":
+		if self.kind == "SU2":
 			super(SU2_CLCD, self).execute()
 			coefficientOfLift = self.LIFT
 			coefficientOfDrag = self.DRAG			
@@ -31,16 +32,16 @@ class SU2_CLCD_Sections(Assembly):
 		super(SU2_CLCD_Sections, self).__init__()
 		self.nElems = nElems
 		self.add("alphas",Array(np.zeros([self.nElems,]), shape=[self.nElems,],iotype="in"))
-		self.add("cls",Array(np.zeros([self.nElems,]), shape=[self.nElems,],iotype="in"))
-		self.add("cds",Array(np.zeros([self.nElems,]), shape=[self.nElems,],iotype="in"))
+		self.add("cls",Array(np.zeros([self.nElems,]), shape=[self.nElems,],iotype="out"))
+		self.add("cds",Array(np.zeros([self.nElems,]), shape=[self.nElems,],iotype="out"))
 
 	def configure(self):
 		for i in range(self.nElems):
 			su2comp = "SU2_%d"%i
 			self.add(su2comp, SU2_CLCD())
-			self.connect("alpha[%d]"%i, su2comp+".alpha")
-			self.connect("cls[%d]"%i, su2comp+".coefficientOfLift")
-			self.connect("cds[%d]"%i, su2comp+".coefficientOfDrag")
+			self.connect("alphas[%d]"%i, su2comp+".alpha")
+			self.connect(su2comp+".coefficientOfLift","cls[%d]"%i)
+			self.connect(su2comp+".coefficientOfDrag", "cds[%d]"%i)
 			self.driver.workflow.add(su2comp)
 
 
