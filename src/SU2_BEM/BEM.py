@@ -106,7 +106,7 @@ class BladeElement(Component):
     V_inf = Float(7, iotype="in", desc="free stream air velocity", units="m/s")
 
     # outputs 
-    alpha = Float(iotype="out", desc="Angle of attack")
+    alpha = Float(iotype="out", desc="Angle of attack", units='rad')
     a_out = Float(iotype="out", desc="Axial indcution factor (Output from BEM)")
     b_out = Float(iotype="out", desc="Angular induction factor (Output from BEM")
 
