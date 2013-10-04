@@ -38,6 +38,9 @@ class blade_opt(Assembly):
             # Between bem and su2
             self.connect('su2.cls[%d]'%i,'bem.cl_array[%d]'%i)
             self.connect('su2.cds[%d]'%i,'bem.cd_array[%d]'%i)
+
+            self.driver.add_parameter('su2.alphas[%d]'%i, low=0.1,high=20)
+            self.su2.alphas[i] = 4.7
             self.driver.add_constraint('bem.alphas[%d]=su2.alphas[%d]'%(i,i))
     
         self.driver.add_objective('-bem.data[3]')
