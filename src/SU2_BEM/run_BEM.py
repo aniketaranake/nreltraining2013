@@ -11,6 +11,11 @@ import numpy as np
 from openmdao.lib.drivers.api import SLSQPdriver
 from openmdao.lib.casehandlers.api import DumpCaseRecorder
 
+from openmdao.main.derivatives import FiniteDifference
+#from openmdao.lib.differentiators.api import FiniteDifference
+
+
+
 class blade_opt(Assembly):
 
     def configure(self):
@@ -44,6 +49,12 @@ class blade_opt(Assembly):
             self.driver.add_constraint('bem.alphas[%d]=su2.alphas[%d]'%(i,i))
     
         self.driver.add_objective('-bem.data[3]')
+
+        # Differentiator
+        self.driver.differentiator = FiniteDifference(self.bem)
+        self.driver.differentiator = FiniteDifference(self.su2)
+        self.driver.differentiator.form = 'central'
+        self.driver.differentiator.default_stepsize = .0001
 
 if __name__=="__main__":
 
