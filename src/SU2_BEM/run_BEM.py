@@ -1,17 +1,20 @@
+# Python imports
 import sys
+import numpy as np
+
+# Imports for our model
 from BEM import BEM
 sys.path.append('../SU2_CLCD')
 from su2_clcd import SU2_CLCD_Sections
 
+# OpenMDAO imports
 from openmdao.main.api import Component, Assembly, VariableTree
 from openmdao.lib.datatypes.api import Float, Int, Array, VarTree
-
-import numpy as np
-
 from openmdao.lib.drivers.api import SLSQPdriver
 from openmdao.lib.casehandlers.api import DumpCaseRecorder
 
-
+# SU^2 imports
+from SU2.io import Config
 
 class blade_opt(Assembly):
 
@@ -20,6 +23,8 @@ class blade_opt(Assembly):
         # Add the bem component to the assembly
         self.add('bem', BEM())
         self.add('su2', SU2_CLCD_Sections())
+
+        self.su2.set_su2_config('inv_NACA0012.cfg')
 
         # Choose SLSQP as the driver and add components to the workflow
         self.add('driver', SLSQPdriver())

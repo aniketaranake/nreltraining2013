@@ -1,10 +1,15 @@
-from openmdao.lib.datatypes.api import Float, Int, Array, VarTree
+# Python imports
 from math import pi
-from SU2_wrapper import Solve
-from openmdao.main.api import Component, Assembly
 import numpy as np
-
 from scipy.interpolate import interp1d
+
+# OpenMDAO imports
+from openmdao.lib.datatypes.api import Float, Int, Array, VarTree
+from openmdao.main.api import Component, Assembly
+from SU2_wrapper import Solve
+
+# SU2 imports
+from SU2.io import Config
 
 class SU2_CLCD(Solve):
   
@@ -15,6 +20,9 @@ class SU2_CLCD(Solve):
 
   coefficientOfLift = Float(iotype="out", desc="coefficient of lift from the airfoil section at that angle of attack")
   coefficientOfDrag = Float(iotype="out", desc="coefficient of lift from the airfoil section at that angle of attack")
+
+  def __init__(self):
+    print "SU2_CLCD item created. config_in=", self.config_in
 
   def execute(self):
     if self.kind == "Fake_SU2":
@@ -39,9 +47,6 @@ class SU2_CLCD(Solve):
       coefficientOfDrag = self.DRAG      
 
 class SU2_CLCD_Sections(Assembly):
-  #nElems = Int(-1,iotype="in",desc="number of blade sections")
-
-
 
   def __init__(self, nElems = 6):
     super(SU2_CLCD_Sections, self).__init__()
@@ -58,6 +63,23 @@ class SU2_CLCD_Sections(Assembly):
       self.connect(su2comp+".coefficientOfLift","cls[%d]"%i)
       self.connect(su2comp+".coefficientOfDrag", "cds[%d]"%i)
       self.driver.workflow.add(su2comp)
+
+  def set_su2_config(self, filename):
+    '''Routine to specify an SU^2 config file'''
+    for i in range(self.nElems):
+
+      # Name of the i'th su2 object
+      su2comp = "SU2_%d"%i
+
+      # Create a new config option and read the file into it
+      new_config = Config()
+      new_config.read(filename)
+
+      # Using eval to deal with su2comp variable
+      evalcmd = 'self.%s.config_in=%s'%(su2comp,new_config)
+      print evalcmd
+      eval(evalcmd)
+
 
 
 if __name__ == "__main__":
