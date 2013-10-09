@@ -73,14 +73,9 @@ class SU2_CLCD_Sections(Assembly):
       print execcmd
       exec(compile(execcmd,'<string>','exec'))
 
-      #execcmd = "print self.%s.mesh_file"%su2def
-      #print execcmd
-      #exec(compile(execcmd, '<string>', 'exec'))
-      #exit()
-
       # Connect deform and solve objects together
-      self.connect('self.%s.config_out'%su2def, 'self.%s.config_in'%su2solve)
-      self.connect('self.%s.mesh_file' %su2def, 'self.%s.mesh_file'%su2solve)
+      self.connect('%s.config_out'%su2def, '%s.config_in'%su2solve)
+      self.connect('%s.mesh_file' %su2def, '%s.mesh_file'%su2solve)
 
       # Connect this assembly to solve objects
       self.connect("alphas[%d]"%i, su2solve+".alpha")
@@ -102,12 +97,9 @@ class SU2_CLCD_Sections(Assembly):
       new_config = Config()
       new_config.read(filename)
 
-      # Using eval to deal with su2def variable
-
-      execcmd = compile('self.%s.config_in=new_config'%(su2def))
+      execcmd = 'self.%s.config_in=new_config'%(su2def)
       print execcmd
-      exec(execmd)
-
+      exec(compile(execcmd,'<string>','exec'))
 
 
 if __name__ == "__main__":
