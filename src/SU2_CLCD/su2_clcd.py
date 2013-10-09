@@ -2,6 +2,7 @@
 from math import pi
 import numpy as np
 from scipy.interpolate import interp1d
+from copy import deepcopy
 
 # OpenMDAO imports
 from openmdao.lib.datatypes.api import Float, Int, Array, VarTree
@@ -67,11 +68,19 @@ class SU2_CLCD_Sections(Assembly):
       # TODO: Clean this up
       new_config = Config()
       new_config.read('inv_NACA0012.cfg') 
-      exec(compile('self.%s.config_in=new_config'%su2def,'<string>','exec'))
+
+      execcmd = 'self.%s.config_in=deepcopy(new_config)'%su2def
+      print execcmd
+      exec(compile(execcmd,'<string>','exec'))
+
+      #execcmd = "print self.%s.mesh_file"%su2def
+      #print execcmd
+      #exec(compile(execcmd, '<string>', 'exec'))
+      #exit()
 
       # Connect deform and solve objects together
-      self.connect('self.%s.mesh_file' %su2def, '%s.mesh_file'%su2solve)
-      self.connect('%s.config_out'%su2def, '%s.config_in'%su2solve)
+      self.connect('self.%s.config_out'%su2def, 'self.%s.config_in'%su2solve)
+      self.connect('self.%s.mesh_file' %su2def, 'self.%s.mesh_file'%su2solve)
 
       # Connect this assembly to solve objects
       self.connect("alphas[%d]"%i, su2solve+".alpha")
