@@ -5,9 +5,9 @@ from scipy.interpolate import interp1d
 from copy import deepcopy
 
 # OpenMDAO imports
-from openmdao.lib.datatypes.api import Float, Int, Array, VarTree
+from openmdao.lib.datatypes.api import Float, Int, Array, VarTree, File
 from openmdao.main.api import Component, Assembly, set_as_top
-from SU2_wrapper import Solve, Deform
+from SU2_wrapper import Solve, Deform, ConfigVar, Config
 
 # SU2 imports
 from SU2.io import Config
@@ -19,10 +19,32 @@ class TestDeform(Deform):
       print "running Deform"
 
 
+class SU2_CLCD(Component): 
+
+  config_in = ConfigVar(Config(), iotype='in')
+  mesh_file = File(iotype='in')
+
+  kind = "Fake_SU2"
+  alpha = Float(2., iotype="in",desc="angle of attack of the airfoil section", units="deg")
+
+  coefficientOfLift = Float(iotype="out", desc="coefficient of lift from the airfoil section at that angle of attack")
+  coefficientOfDrag = Float(iotype="out", desc="coefficient of lift from the airfoil section at that angle of attack")
+
+  def execute(self): 
+
+    alpha_data = np.array([0., 13., 15, 20, 30])
+    cl_data    = np.array([0, 1.3, .8, .7, 1.1])
+    cd_data    = np.array([0., 1e-2, 0.3, 0.6, 1.])
+
+    f_cl = interp1d(alpha_data, cl_data, fill_value=0.001, bounds_error=False)
+    f_cd = interp1d(alpha_data, cd_data, fill_value=0.001, bounds_error=False)
+    self.coefficientOfLift = float(f_cl(self.alpha))
+    self.coefficientOfDrag = float(f_cd(self.alpha)) + 1e-5
+
+    print "Fake_SU2: alpha = ", self.alpha, ", cl = ", self.coefficientOfLift, ", cd = ", self.coefficientOfDrag
 
 
-
-class SU2_CLCD(Solve):
+class _SU2_CLCD(Solve):
   
   """Calculate the coefficient of lift and the coefficient of drag from SU2"""
 
