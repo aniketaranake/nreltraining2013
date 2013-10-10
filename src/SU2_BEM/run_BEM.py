@@ -34,14 +34,15 @@ class blade_opt(Assembly):
         self.driver.workflow.add(['bem','su2'])
 
         # Optimization parameters
-        self.driver.add_parameter('bem.chord_hub', low=.5, high=2)
-        self.driver.add_parameter('bem.chord_tip', low=.5, high=2)
-        self.driver.add_parameter('bem.twist_hub', low=-5, high=50)
-        self.driver.add_parameter('bem.twist_tip', low=-5, high=50)
+        #self.driver.add_parameter('bem.chord_hub', low=.5, high=2)
+        #self.driver.add_parameter('bem.chord_tip', low=.5, high=2)
+        #self.driver.add_parameter('bem.twist_hub', low=-5, high=50)
+        #self.driver.add_parameter('bem.twist_tip', low=-5, high=50)
 
         # Constraints and connections
         for i in range(len(self.bem.a_in_array)):
-
+            self.driver.add_parameter('bem.a_in_array[%d]'%i,low=0, high=1)
+            self.driver.add_parameter('bem.b_in_array[%d]'%i,low=0, high=1)
             # Internal to bem
             self.driver.add_constraint('(bem.a_in_array[%d]-bem.a_out_array[%d])**2 < .001'%(i,i))
             self.driver.add_constraint('(bem.b_in_array[%d]-bem.b_out_array[%d])**2 < .001'%(i,i))

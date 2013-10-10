@@ -153,7 +153,7 @@ class BladeElement(Component):
         self.delta_Ct = q_c*(self.C_l*cos_phi-self.C_d*sin_phi)/(.5*self.rho*(self.V_inf**2)*(pi*self.r**2))
         self.delta_Cp = self.b_out*(1-self.a_out)*self.lambda_r**3*(1-self.C_d/self.C_l*tan(self.phi))
 
-        "\t BladeElement: alpha=", self.alpha, ", a_in=", self.a_in, ", a_out=", self.a_out,", b_in=", self.b_in, ", b_out=", self.b_out
+        print "\t BladeElement: alpha=", self.alpha, ", a_in=", self.a_in, ", a_out=", self.a_out,", b_in=", self.b_in, ", b_out=", self.b_out
 
 class BEM(Assembly):
     """Blade Rotor with user specified number BladeElements"""
