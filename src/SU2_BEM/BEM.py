@@ -14,6 +14,8 @@ import sys
 sys.path.append('../SU2_CLCD')
 from su2_clcd import SU2_CLCD
 
+rad2deg = 180./pi
+
 class FlowConditions(VariableTree):     
     rho = Float(1.225, desc="air density", units="kg/m**3")
     V   = Float(7., desc="free stream air velocity", units="m/s")
@@ -106,7 +108,7 @@ class BladeElement(Component):
     V_inf = Float(7, iotype="in", desc="free stream air velocity", units="m/s")
 
     # outputs 
-    alpha = Float(iotype="out", desc="Angle of attack", units='rad')
+    alpha = Float(iotype="out", desc="Angle of attack", units='deg')
     a_out = Float(iotype="out", desc="Axial indcution factor (Output from BEM)")
     b_out = Float(iotype="out", desc="Angular induction factor (Output from BEM")
 
@@ -133,7 +135,7 @@ class BladeElement(Component):
         self.phi   = np.arctan(self.lambda_r*(1+self.b_in)/(1-self.a_in))
 
         # Angle of attack
-        self.alpha = pi/2-self.twist-self.phi
+        self.alpha = (pi/2-self.twist-self.phi)*rad2deg
 
         # Recompute induction factors for given flow angle
         self.a_out = 1./(1 + 4.*(np.cos(self.phi)**2)/(self.sigma*self.C_l*np.sin(self.phi)))

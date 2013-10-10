@@ -41,10 +41,8 @@ class blade_opt(Assembly):
 
         # Constraints and connections
         for i in range(len(self.bem.a_in_array)):
+
             # Internal to bem
-            #self.driver.add_constraint('bem.a_in_array[%d]=bem.a_out_array[%d]'%(i,i))
-            #self.driver.add_constraint('bem.b_in_array[%d]=bem.b_out_array[%d]'%(i,i))
-            
             self.driver.add_constraint('(bem.a_in_array[%d]-bem.a_out_array[%d])**2 < .001'%(i,i))
             self.driver.add_constraint('(bem.b_in_array[%d]-bem.b_out_array[%d])**2 < .001'%(i,i))
 
@@ -54,7 +52,6 @@ class blade_opt(Assembly):
 
             self.driver.add_parameter('su2.alphas[%d]'%i, low=0.1,high=20)
             self.su2.alphas[i] = 4.7
-            #self.driver.add_constraint('bem.alphas[%d]=su2.alphas[%d]'%(i,i))
             self.driver.add_constraint('(bem.alphas[%d]-su2.alphas[%d])**2 < .001'%(i,i))
     
         self.driver.add_objective('-bem.data[3]')
@@ -67,3 +64,4 @@ if __name__=="__main__":
     print 'bo.bem.chord_tip: ', bo.bem.chord_tip
     print 'bo.bem.twist_hub: ', bo.bem.twist_hub
     print 'bo.bem.twist_tip: ', bo.bem.twist_tip
+    print 'bo.bem.data[3] (Cp):   ', bo.bem.data[3]
