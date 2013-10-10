@@ -10,7 +10,7 @@ from su2_clcd import SU2_CLCD_Sections
 # OpenMDAO imports
 from openmdao.main.api import Component, Assembly, VariableTree
 from openmdao.lib.datatypes.api import Float, Int, Array, VarTree
-from openmdao.lib.drivers.api import SLSQPdriver
+from openmdao.lib.drivers.api import SLSQPdriver, COBYLAdriver
 from openmdao.lib.casehandlers.api import DumpCaseRecorder
 
 # SU^2 imports
@@ -27,7 +27,7 @@ class blade_opt(Assembly):
         self.su2.set_su2_config('inv_NACA0012.cfg')
 
         # Choose SLSQP as the driver and add components to the workflow
-        self.add('driver', SLSQPdriver())
+        self.add('driver', COBYLAdriver())
         self.driver.workflow.add(['bem','su2'])
 
         # Optimization parameters
@@ -39,8 +39,11 @@ class blade_opt(Assembly):
         # Constraints and connections
         for i in range(len(self.bem.a_in_array)):
             # Internal to bem
-            self.driver.add_constraint('bem.a_in_array[%d]=bem.a_out_array[%d]'%(i,i))
-            self.driver.add_constraint('bem.b_in_array[%d]=bem.b_out_array[%d]'%(i,i))
+            #self.driver.add_constraint('bem.a_in_array[%d]=bem.a_out_array[%d]'%(i,i))
+            #self.driver.add_constraint('bem.b_in_array[%d]=bem.b_out_array[%d]'%(i,i))
+            
+            self.driver.add_constraint('(bem.a_in_array[%d]-bem.a_out_array[%d])**2 < .001'%(i,i))
+            self.driver.add_constraint('(bem.b_in_array[%d]-bem.b_out_array[%d])**2 < .001'%(i,i))
 
             # Between bem and su2
             self.connect('su2.cls[%d]'%i,'bem.cl_array[%d]'%i)
@@ -48,7 +51,8 @@ class blade_opt(Assembly):
 
             self.driver.add_parameter('su2.alphas[%d]'%i, low=0.1,high=20)
             self.su2.alphas[i] = 4.7
-            self.driver.add_constraint('bem.alphas[%d]=su2.alphas[%d]'%(i,i))
+            #self.driver.add_constraint('bem.alphas[%d]=su2.alphas[%d]'%(i,i))
+            self.driver.add_constraint('(bem.alphas[%d]-su2.alphas[%d])**2 < .001'%(i,i))
     
         self.driver.add_objective('-bem.data[3]')
 
