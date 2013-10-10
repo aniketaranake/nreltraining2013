@@ -23,7 +23,7 @@ class SU2_CLCD(Solve):
   coefficientOfDrag = Float(iotype="out", desc="coefficient of lift from the airfoil section at that angle of attack")
 
   def __init__(self):
-    super(Solve,self).__init__()
+    super(SU2_CLCD,self).__init__()
 
   def execute(self):
     if self.kind == "Fake_SU2":
@@ -37,11 +37,8 @@ class SU2_CLCD(Solve):
       self.coefficientOfLift = float(f_cl(self.alpha))
       self.coefficientOfDrag = float(f_cd(self.alpha)) + 1e-5
 
-      #self.coefficientOfLift = 2 * pi * self.alpha
-      #self.coefficientOfDrag = .00002 * pi * pi * self.alpha
-
-
       print "Fake_SU2: alpha = ", self.alpha, ", cl = ", self.coefficientOfLift, ", cd = ", self.coefficientOfDrag
+
     if self.kind == "SU2":
       super(SU2_CLCD, self).execute()
       coefficientOfLift = self.LIFT
@@ -65,7 +62,7 @@ class SU2_CLCD_Sections(Assembly):
       self.add(su2def  , Deform())
       self.add(su2solve, SU2_CLCD())
 
-      # TODO: Clean this up
+      # TODO: inv_NACA0012 used as default, can be changed later. Clean this up
       new_config = Config()
       new_config.read('inv_NACA0012.cfg') 
 
