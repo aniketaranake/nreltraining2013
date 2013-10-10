@@ -27,7 +27,7 @@ class blade_opt(Assembly):
         self.su2.set_su2_config('inv_NACA0012.cfg')
 
         # Choose SLSQP as the driver and add components to the workflow
-        self.add('driver', COBYLAdriver())
+        self.add('driver', SLSQPdriver())
         self.driver.workflow.add(['bem','su2'])
 
         # Optimization parameters
