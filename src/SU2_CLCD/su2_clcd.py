@@ -12,7 +12,7 @@ from SU2_wrapper import Solve, Deform
 # SU2 imports
 from SU2.io import Config
 
-class SU2_CLCD(Solve):
+class SU2_CLCD(Component):
   
   """Calculate the coefficient of lift and the coefficient of drag from SU2"""
 
@@ -26,6 +26,9 @@ class SU2_CLCD(Solve):
     super(SU2_CLCD,self).__init__()
 
   def execute(self):
+    print "Starting SU2_CLCD execute"
+    print self.kind
+    self.kind = "Fake_SU2"
     if self.kind == "Fake_SU2":
 
       alpha_data = np.array([0., 13., 15, 20, 30])
@@ -38,11 +41,14 @@ class SU2_CLCD(Solve):
       self.coefficientOfDrag = float(f_cd(self.alpha)) + 1e-5
 
       print "Fake_SU2: alpha = ", self.alpha, ", cl = ", self.coefficientOfLift, ", cd = ", self.coefficientOfDrag
-
-    if self.kind == "SU2":
-      super(SU2_CLCD, self).execute()
-      coefficientOfLift = self.LIFT
-      coefficientOfDrag = self.DRAG      
+    #elif self.kind == "SU2":
+    #  for i in range(100):
+    #    print "In SU2"    
+    #  super(SU2_CLCD, self).execute()
+    #  coefficientOfLift = self.LIFT
+    #  coefficientOfDrag = self.DRAG      
+    else:
+      raise
 
 class SU2_CLCD_Sections(Assembly):
 
@@ -71,8 +77,8 @@ class SU2_CLCD_Sections(Assembly):
       exec(compile(execcmd,'<string>','exec'))
 
       # Connect deform and solve objects together
-      self.connect('%s.config_out'%su2def, '%s.config_in'%su2solve)
-      self.connect('%s.mesh_file' %su2def, '%s.mesh_file'%su2solve)
+      #self.connect('%s.config_out'%su2def, '%s.config_in'%su2solve)
+      #self.connect('%s.mesh_file' %su2def, '%s.mesh_file'%su2solve)
 
       # Connect this assembly to solve objects
       self.connect("alphas[%d]"%i, su2solve+".alpha")
