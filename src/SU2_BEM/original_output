@@ -1,0 +1,20 @@
+---------------------------
+Run once
+-----------------
+Cp:  0.343276781616
+rpm:  107.0
+top.b.chord_hub:  0.7
+top.b.chord_tip:  0.187
+top.b.twist_hub:  29.0
+top.b.twist_tip:  -3.58
+
+---------------------------
+SLSQP optimization
+-----------------
+Cp:  0.450359801489
+rpm:  106.82599842
+top.b.chord_hub:  1.3520421742
+top.b.chord_tip:  0.500000000002
+top.b.twist_hub:  28.5237956073
+top.b.twist_tip:  -1.85125717165
+
