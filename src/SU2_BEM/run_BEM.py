@@ -10,7 +10,7 @@ from su2_clcd import SU2_CLCD_Sections
 # OpenMDAO imports
 from openmdao.main.api import Component, Assembly, VariableTree
 from openmdao.lib.datatypes.api import Float, Int, Array, VarTree
-from openmdao.lib.drivers.api import SLSQPdriver, COBYLAdriver
+#from openmdao.lib.drivers.api import SLSQPdriver, COBYLAdriver, CONMINdriver
 
 from custom_opt import SLSQPdriver
 
@@ -31,6 +31,7 @@ class blade_opt(Assembly):
 
         # Choose SLSQP as the driver and add components to the workflow
         self.add('driver', SLSQPdriver())
+        # self.add('driver',CONMINdriver())
         self.driver.workflow.add(['bem','su2'])
 
         # Optimization parameters
