@@ -7,11 +7,8 @@ from copy import deepcopy
 # OpenMDAO imports
 from openmdao.lib.datatypes.api import Float, Int, Array, VarTree, File
 from openmdao.main.api import Component, Assembly, set_as_top
-from SU2_wrapper import Solve, Deform, ConfigVar, Config
-
-# SU2 imports
-from SU2.io import Config
-
+from SU2_wrapper import Solve, Deform
+from SU2_wrapper.SU2_wrapper import ConfigVar, Config
 
 
 class SU2_CLCD(Component): 
