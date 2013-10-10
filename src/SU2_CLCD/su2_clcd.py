@@ -23,6 +23,7 @@ class SU2_CLCD(Component):
   coefficientOfDrag = Float(iotype="out", desc="coefficient of lift from the airfoil section at that angle of attack")
 
   def __init__(self):
+    print "in init"
     super(SU2_CLCD,self).__init__()
 
   def execute(self):
@@ -63,18 +64,18 @@ class SU2_CLCD_Sections(Assembly):
     for i in range(self.nElems):
 
       # Create deform and solve objects
-      su2def   = "SU2_deform_%d"%i
+      #su2def   = "SU2_deform_%d"%i
       su2solve = "SU2_solve_%d"%i
-      self.add(su2def  , Deform())
+      #self.add(su2def  , Deform())
       self.add(su2solve, SU2_CLCD())
 
       # TODO: inv_NACA0012 used as default, can be changed later. Clean this up
       new_config = Config()
       new_config.read('inv_NACA0012.cfg') 
 
-      execcmd = 'self.%s.config_in=deepcopy(new_config)'%su2def
-      print execcmd
-      exec(compile(execcmd,'<string>','exec'))
+      #execcmd = 'self.%s.config_in=deepcopy(new_config)'%su2def
+      #print execcmd
+      #exec(compile(execcmd,'<string>','exec'))
 
       # Connect deform and solve objects together
       #self.connect('%s.config_out'%su2def, '%s.config_in'%su2solve)
@@ -86,23 +87,23 @@ class SU2_CLCD_Sections(Assembly):
       self.connect(su2solve+".coefficientOfDrag", "cds[%d]"%i)
 
       # Add both deform and solve to the workflow
-      self.driver.workflow.add(su2def)
+      #self.driver.workflow.add(su2def)
       self.driver.workflow.add(su2solve)
 
-  def set_su2_config(self, filename):
-    '''Routine to specify an SU^2 config file'''
-    for i in range(self.nElems):
+  #def set_su2_config(self, filename):
+  #  '''Routine to specify an SU^2 config file'''
+  #  for i in range(self.nElems):
 
       # Name of the i'th su2 deform object
-      su2def = "SU2_deform_%d"%i
+   #   su2def = "SU2_deform_%d"%i
 
       # Create a new config option and read the file into it
-      new_config = Config()
-      new_config.read(filename)
+    #  new_config = Config()
+    #  new_config.read(filename)
 
-      execcmd = 'self.%s.config_in=new_config'%(su2def)
-      print execcmd
-      exec(compile(execcmd,'<string>','exec'))
+     # execcmd = 'self.%s.config_in=new_config'%(su2def)
+      #print execcmd
+      #exec(compile(execcmd,'<string>','exec'))
 
 
 if __name__ == "__main__":

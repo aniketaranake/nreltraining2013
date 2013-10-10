@@ -24,7 +24,7 @@ class blade_opt(Assembly):
         self.add('bem', BEM())
         self.add('su2', SU2_CLCD_Sections())
 
-        self.su2.set_su2_config('inv_NACA0012.cfg')
+        #self.su2.set_su2_config('inv_NACA0012.cfg')
 
         # Choose SLSQP as the driver and add components to the workflow
         self.add('driver', SLSQPdriver())
