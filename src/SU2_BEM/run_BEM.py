@@ -43,8 +43,8 @@ class blade_opt(Assembly):
         for i in range(len(self.bem.a_in_array)):
 
             # Internal to bem
-            self.driver.add_constraint('(bem.a_in_array[%d]-bem.a_out_array[%d])**2 < .00001'%(i,i))
-            self.driver.add_constraint('(bem.b_in_array[%d]-bem.b_out_array[%d])**2 < .00001'%(i,i))
+            self.driver.add_constraint('(bem.a_in_array[%d]-bem.a_out_array[%d])**2 < .001'%(i,i))
+            self.driver.add_constraint('(bem.b_in_array[%d]-bem.b_out_array[%d])**2 < .001'%(i,i))
 
             # Between bem and su2
             self.connect('su2.cls[%d]'%i,'bem.cl_array[%d]'%i)
