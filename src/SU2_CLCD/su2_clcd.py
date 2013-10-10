@@ -13,8 +13,8 @@ from SU2_wrapper.SU2_wrapper import ConfigVar, Config
 
 class SU2_CLCD(Component): 
 
-  config_in = ConfigVar(Config(), iotype='in')
-  mesh_file = File(iotype='in')
+  config_in = ConfigVar(Config(), iotype='in', data_shape=(1,))
+  mesh_file = File(iotype='in') #made up sizes
 
   kind = "Fake_SU2"
   alpha = Float(2., iotype="in",desc="angle of attack of the airfoil section", units="deg")

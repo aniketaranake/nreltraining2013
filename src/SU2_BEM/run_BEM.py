@@ -11,6 +11,9 @@ from su2_clcd import SU2_CLCD_Sections
 from openmdao.main.api import Component, Assembly, VariableTree
 from openmdao.lib.datatypes.api import Float, Int, Array, VarTree
 from openmdao.lib.drivers.api import SLSQPdriver, COBYLAdriver
+
+from custom_opt import SLSQPdriver
+
 from openmdao.lib.casehandlers.api import DumpCaseRecorder
 
 # SU^2 imports
