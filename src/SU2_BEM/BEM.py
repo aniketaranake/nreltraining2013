@@ -153,7 +153,7 @@ class BladeElement(Component):
         self.delta_Ct = q_c*(C_L*cos_phi-C_D*sin_phi)/(.5*self.rho*(self.V_inf**2)*(pi*self.r**2))
         self.delta_Cp = self.b*(1-self.a)*self.lambda_r**3*(1-C_D/C_L*tan(self.phi))
 
-        print "r, alpha: ", self.r, self.alpha
+        print "r, alpha: ", self.r, self.alpha*180/pi
 
     def _iteration(self, X):
         self.phi = np.arctan(self.lambda_r*(1+X[1])/(1-X[0]))
@@ -258,27 +258,27 @@ if __name__ == "__main__":
 
     
     
-    from openmdao.lib.drivers.api import SLSQPdriver
-    from openmdao.lib.casehandlers.api import DumpCaseRecorder
-    top.add('driver', SLSQPdriver())
-    top.driver.add_parameter('b.chord_hub', low=.5, high=2)
-    top.driver.add_parameter('b.chord_tip', low=.5, high=2)
-    top.driver.add_parameter('b.twist_hub', low=-5, high=50)
-    top.driver.add_parameter('b.twist_tip', low=-5, high=50)
-    top.driver.add_parameter('b.rpm', low=10, high=200)
-    top.driver.add_parameter('b.r_tip', low=1, high=10)
-    #top.driver.recorders =[DumpCaseRecorder()]
+    #from openmdao.lib.drivers.api import SLSQPdriver
+    #from openmdao.lib.casehandlers.api import DumpCaseRecorder
+    #top.add('driver', SLSQPdriver())
+    #top.driver.add_parameter('b.chord_hub', low=.5, high=2)
+    #top.driver.add_parameter('b.chord_tip', low=.5, high=2)
+    #top.driver.add_parameter('b.twist_hub', low=-5, high=50)
+    #top.driver.add_parameter('b.twist_tip', low=-5, high=50)
+    #top.driver.add_parameter('b.rpm', low=10, high=200)
+    #top.driver.add_parameter('b.r_tip', low=1, high=10)
+    ##top.driver.recorders =[DumpCaseRecorder()]
 
-    top.driver.add_objective('-b.data[3]')
+    #top.driver.add_objective('-b.data[3]')
 
-    top.run()
-    print 
-    print 'Cp: ', top.b.data[3]
-    print 'rpm: ',top.b.rpm
-    print 'top.b.chord_hub: ', top.b.chord_hub
-    print 'top.b.chord_tip: ', top.b.chord_tip
-    print 'top.b.twist_hub: ', top.b.twist_hub
-    print 'top.b.twist_tip: ', top.b.twist_tip
+    #top.run()
+    #print 
+    #print 'Cp: ', top.b.data[3]
+    #print 'rpm: ',top.b.rpm
+    #print 'top.b.chord_hub: ', top.b.chord_hub
+    #print 'top.b.chord_tip: ', top.b.chord_tip
+    #print 'top.b.twist_hub: ', top.b.twist_hub
+    #print 'top.b.twist_tip: ', top.b.twist_tip
     
 
 
