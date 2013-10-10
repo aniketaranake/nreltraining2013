@@ -8,6 +8,13 @@ top.b.chord_tip:  0.187
 top.b.twist_hub:  29.0
 top.b.twist_tip:  -3.58
 
+r, alpha:  0.2   43.2227459616
+r, alpha:  1.16   3.21282268104
+r, alpha:  2.12   0.287316923678
+r, alpha:  3.08   1.37597884587
+r, alpha:  4.04   4.19756814483
+r, alpha:  5.0    8.06590188234
+
 ---------------------------
 SLSQP optimization
 -----------------
