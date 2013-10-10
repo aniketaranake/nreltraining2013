@@ -138,7 +138,7 @@ class BladeElement(Component):
         rad = np.array([0., 10, 20, 30, 40])*pi/180
         self.cd_interp = interp1d(rad, self.C_D, fill_value=0.001, bounds_error=False)
 
-        result = fsolve(self._iteration, [self.a_init, self.b_init])
+        result = fsolve(self._iteration, [self.a_init, self.b_init], xtol=1e-12)
         self.a = result[0]
         self.b = result[1]
 
