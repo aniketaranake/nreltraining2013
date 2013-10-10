@@ -13,7 +13,7 @@ from SU2_wrapper.SU2_wrapper import ConfigVar, Config
 
 class SU2_CLCD(Component): 
 
-  config_in = ConfigVar(Config(), iotype='in', data_shape=(1,))
+  config_in = ConfigVar(Config(), iotype='in')
   mesh_file = File(iotype='in') #made up sizes
 
   kind = "Fake_SU2"
@@ -105,20 +105,6 @@ class SU2_CLCD_Sections(Assembly):
       # Add both deform and solve to the workflow
       self.driver.workflow.add(su2def)
       self.driver.workflow.add(su2solve)
-
-  def set_su2_config(self, filename):
-    '''Routine to specify an SU^2 config file'''
-    for i in range(self.nElems):
-
-      # Name of the i'th su2 deform object
-      su2def = "SU2_deform_%d"%i
-
-      # Create a new config option and read the file into it
-      new_config = Config()
-      new_config.read(filename)
-
-      execcmd = 'self.%s.config_in=new_config'%(su2def)
-      exec(compile(execcmd,'<string>','exec'))
 
 
 if __name__ == "__main__":

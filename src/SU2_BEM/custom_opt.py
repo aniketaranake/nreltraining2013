@@ -201,7 +201,7 @@ class SLSQPdriver(Driver):
         con = ["%s.out0" % item.pcomp_name for item in \
                self.get_constraints().values()]
 
-        J = self.workflow.calc_gradient(inputs, obj + con, mode="forward")
+        J = self.workflow.calc_gradient(inputs, obj + con, fd=True)
         
         nobj = len(obj)
         df[0:self.nparam] = J[0:nobj, :].flatten()
