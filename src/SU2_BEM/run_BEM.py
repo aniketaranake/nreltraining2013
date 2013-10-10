@@ -66,3 +66,5 @@ if __name__=="__main__":
     print 'bo.bem.twist_hub: ', bo.bem.twist_hub
     print 'bo.bem.twist_tip: ', bo.bem.twist_tip
     print 'bo.bem.data[3] (Cp):   ', bo.bem.data[3]
+    print 'bo.bem.alphas:   ', bo.bem.alphas
+    print 'bo.su2.alphas:   ', bo.su2.alphas
