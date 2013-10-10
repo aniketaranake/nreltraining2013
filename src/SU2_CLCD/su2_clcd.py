@@ -13,11 +13,6 @@ from SU2_wrapper import Solve, Deform, ConfigVar, Config
 from SU2.io import Config
 
 
-class TestDeform(Deform): 
-
-  def execute(self): 
-      print "running Deform"
-
 
 class SU2_CLCD(Component): 
 
@@ -91,7 +86,7 @@ class SU2_CLCD_Sections(Assembly):
       # Create deform and solve objects
       su2def   = "SU2_deform_%d"%i
       su2solve = "SU2_solve_%d"%i
-      deform = self.add(su2def  , TestDeform())
+      deform = self.add(su2def  , Deform())
       solve = self.add(su2solve, SU2_CLCD())
 
       # TODO: inv_NACA0012 used as default, can be changed later. Clean this up
