@@ -63,7 +63,7 @@ if __name__=="__main__":
 
     bo = blade_opt()
     bo.run()
-    print 'top.b.chord_hub: ', top.b.chord_hub
-    print 'top.b.chord_tip: ', top.b.chord_tip
-    print 'top.b.twist_hub: ', top.b.twist_hub
-    print 'top.b.twist_tip: ', top.b.twist_tip
+    print 'bo.bem.chord_hub: ', bo.bem.chord_hub
+    print 'bo.bem.chord_tip: ', bo.bem.chord_tip
+    print 'bo.bem.twist_hub: ', bo.bem.twist_hub
+    print 'bo.bem.twist_tip: ', bo.bem.twist_tip
