@@ -41,19 +41,19 @@ class blade_opt(Assembly):
 
         # Constraints and connections
         for i in range(len(self.bem.a_in_array)):
-            self.driver.add_parameter('bem.a_in_array[%d]'%i,low=0, high=1)
-            self.driver.add_parameter('bem.b_in_array[%d]'%i,low=0, high=1)
+            self.driver.add_parameter('bem.a_in_array[%d]'%i,low=1e-4, high=0.4)
+            self.driver.add_parameter('bem.b_in_array[%d]'%i,low=1e-3, high=0.03)
             # Internal to bem
-            self.driver.add_constraint('(bem.a_in_array[%d]-bem.a_out_array[%d])**2 < .001'%(i,i))
-            self.driver.add_constraint('(bem.b_in_array[%d]-bem.b_out_array[%d])**2 < .001'%(i,i))
+            self.driver.add_constraint('(bem.a_in_array[%d]-bem.a_out_array[%d])**2 < .00001'%(i,i))
+            self.driver.add_constraint('(bem.b_in_array[%d]-bem.b_out_array[%d])**2 < .00001'%(i,i))
 
             # Between bem and su2
             self.connect('su2.cls[%d]'%i,'bem.cl_array[%d]'%i)
             self.connect('su2.cds[%d]'%i,'bem.cd_array[%d]'%i)
 
-            self.driver.add_parameter('su2.alphas[%d]'%i, low=0.1,high=20)
+            self.driver.add_parameter('su2.alphas[%d]'%i, low=0.1,high=50)
             self.su2.alphas[i] = 0.01
-            self.driver.add_constraint('(bem.alphas[%d]-su2.alphas[%d])**2 < .001'%(i,i))
+            self.driver.add_constraint('(bem.alphas[%d]-su2.alphas[%d])**2 < .00001'%(i,i))
     
         self.driver.add_objective('-bem.data[3]')
 
