@@ -153,7 +153,8 @@ class BladeElement(Component):
         self.delta_Ct = q_c*(C_L*cos_phi-C_D*sin_phi)/(.5*self.rho*(self.V_inf**2)*(pi*self.r**2))
         self.delta_Cp = self.b*(1-self.a)*self.lambda_r**3*(1-C_D/C_L*tan(self.phi))
 
-        print "r, alpha: ", self.r, self.alpha*180/pi
+        print "%15s%15s%15s%15s%15s%15s%15s"%("r","alpha","a","b","cl","cd","twist")
+        print "%15.7f%15.7f%15.7f%15.7f%15.7f%15.7f%15.7f"%(self.r,self.alpha,self.a,self.b,C_L,C_D,self.twist)
 
     def _iteration(self, X):
         self.phi = np.arctan(self.lambda_r*(1+X[1])/(1-X[0]))
