@@ -173,7 +173,7 @@ class BladeElement(Component):
         '''
 
         # 0,0
-        numerator    = self.lambda_r*(1+self.b_in))  # Inside of arctan in expression for phi
+        numerator    = self.lambda_r*(1+self.b_in)  # Inside of arctan in expression for phi
         dphi_da_in   = numerator/(numerator**2 + (self.a_in-1)**2) # With help from Wolfram
         dalpha_da_in = -rad2deg*dphi_da_in
 

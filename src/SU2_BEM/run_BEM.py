@@ -40,6 +40,10 @@ class blade_opt(Assembly):
         #self.driver.add_parameter('bem.twist_hub', low=-5, high=50)
         #self.driver.add_parameter('bem.twist_tip', low=-5, high=50)
 
+        #initial_alphas = [10,5,3,2,1,0.5]
+        #initial_a      = [0.1,0.1,0.1,0.1,0.1,0.1]
+        #initial_b      = [0.01,0.01,0.01,0.01,0.01,0.01]
+
         initial_alphas = [43.2227460,3.2128227,0.2873169,1.3759788,4.1975681,8.0659019]
         initial_a      = [0.0001406, 0.0864717, 0.0097122, 0.0550053, 0.1877178, 0.3698098]
         initial_b      = [0.0013702, 0.0224092, 0.0008345, 0.0021339, 0.0036328, 0.0036250]
@@ -57,7 +61,7 @@ class blade_opt(Assembly):
             self.connect('su2.cds[%d]'%i,'bem.cd_array[%d]'%i)
 
             self.driver.add_parameter('su2.alphas[%d]'%i, low=0.1,high=50,start=initial_alphas[i])
-            self.su2.alphas[i] = 0.01
+            #self.su2.alphas[i] = 0.01
             self.driver.add_constraint('(bem.alphas[%d]-su2.alphas[%d])**2 < 1e-8'%(i,i))
     
         self.driver.add_objective('-bem.data[3]')
