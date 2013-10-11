@@ -156,6 +156,54 @@ class BladeElement(Component):
         print "\t%15s"  *9%("r","alpha","a_in","b_in","cl","cd","twist","a_out","b_out")
         print "\t%15.7f"*9%(self.r,self.alpha,self.a_in,self.b_in,self.C_l,self.C_d,self.twist*180./pi,self.a_out, self.b_out)
 
+
+    def linearize(self):
+        '''Calculate the Jacobian and store it in self.J
+        
+             | a_in  b_in  twist  chord  C_l  C_d
+       ------|-------------------------------------
+       alpha | 
+             |
+       a_out |
+             |
+       b_out |
+             |
+       Cp    |
+
+        '''
+
+        # 0,0
+        numerator    = self.lambda_r*(1+self.b_in))  # Inside of arctan in expression for phi
+        dphi_da_in   = numerator/(numerator**2 + (self.a_in-1)**2) # With help from Wolfram
+        dalpha_da_in = -rad2deg*dphi_da_in
+
+        # 0,1
+        coeff        = self.lambda_r/(1-self.a_in)
+        dphi_db_in   = coeff/ (coeff**2*(self.b_in+1)**2+1)
+        dalpha_db_in = -rad2deg*dphi_db_in
+
+        # 0,2
+        dalpha_dtwist = -rad2deg
+        
+        # 0,3
+        dalpha_dchord = 0.0
+
+        # 0,4
+        dalpha_dC_l = 0.0
+
+        # 0,5
+        dalpha_dC_d = 0.0
+        
+
+    def provideJ(self):
+        '''Provide input/output keys and Jacobian to the driver'''
+
+        input_keys  = ('a_in','b_in','twist','chord','C_l','C_d')
+        output_keys = ('alpha','a_out','b_out')
+
+        return input_keys, output_keys, self.J
+
+
 class BEM(Assembly):
     """Blade Rotor with user specified number BladeElements"""
 
