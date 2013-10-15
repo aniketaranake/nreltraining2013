@@ -55,6 +55,8 @@ class BEMComponent(Component):
 
         # Outputs
         self.add('power', Float(iotype="out"))
+        self.nEvalsExecute = 0
+        self.totalEvals = 0
 
     def load_test_airfoils(self):
         '''Loads the airfoils from Andrew Ning's directory of test airfoils'''
@@ -90,6 +92,19 @@ class BEMComponent(Component):
         #                 tiploss=True, hubloss=True, wakerotation=True, usecd=True, iterRe=1, derivatives=False):
         #-------------------------------------------------------------------------------------------------------------------
 
+        power, thrust, torque = self.CallCCBlade()
+
+        self.nEvalsExecute += 1
+        print "Calling execute ", "nExecute", self.nEvalsExecute, "nEvals",self.totalEvals
+        print "theta", self.theta
+        print "power", power[0]
+        self.power = power[0]
+
+    def CallCCBlade(self):
+        print "alpha",self.alphas
+        print "cls",self.cls
+        print "cds",self.cds
+        self.totalEvals += 1
         # Create a CCAirfoil object using the input alpha sweep
         airfoil = CCAirfoil(self.alphas, [], self.cls, self.cds)
         self.af = [0]*self.n_elements
@@ -100,9 +115,7 @@ class BEMComponent(Component):
         blade = CCBlade(self.r, self.chord, self.theta, self.af, self.Rhub, self.Rtip,
                         self.B, self.rho, self.mu, self.precone, self.tilt, self.yaw, self.shearExp, self.hubHt, self.nSector)
 
-        power, thrust, torque = blade.evaluate([self.Uinf], [self.Omega], [self.pitch]) 
-        print power[0]
-        self.power = power[0]
+        return blade.evaluate([self.Uinf], [self.Omega], [self.pitch]) 
 
     def linearize(self):
         '''Compute Jacobian d(outputs)/d(inputs)
@@ -112,6 +125,8 @@ class BEMComponent(Component):
         
         '''
 
+        print "Calling linearize"
+        
         # Create a CCAirfoil object using the input alpha sweep
         airfoil = CCAirfoil(self.alphas, [], self.cls, self.cds)
         self.af = [0]*self.n_elements
@@ -128,11 +143,41 @@ class BEMComponent(Component):
         self.dQ_dv = blade.evaluate([self.Uinf], [self.Omega], [self.pitch], coefficient=False)
 
         # Store relevant parts of Jacobian in self.J
-        self.J = np.zeros([1,2*self.n_elements])
+        self.J = np.zeros([1,2*self.n_elements + 3*self.nSweep])
         for j in range(self.n_elements):
             self.J[0,j] = self.dP_dv[0,2,j]
         for j in range(self.n_elements):
             self.J[0,self.n_elements+j] = self.dP_dv[0, 1, j]
+
+        # Say the derivative wrt. alpha is zero
+        for j in range(self.nSweep):
+            self.J[0,self.n_elements*2 + j] = 0
+
+        clStepSize = 1e-2
+        cdStepSize = 1e-2
+
+        offset = self.n_elements*2 + self.nSweep
+        #compute finite difference for derivatives wrt cl
+        for j in range(self.nSweep):
+            self.cls[j] += clStepSize
+            power1, thrust1, torque1 = self.CallCCBlade()
+            self.cls[j] -= 2*clStepSize
+            power2, thrust2, torque2 = self.CallCCBlade()
+            self.cls[j] += clStepSize
+            self.J[0, offset + j] = (power1 -power2) / (2 * clStepSize)
+
+        offset = self.n_elements*2 + 2*self.nSweep
+        #compute finite difference for derivatives wrt cl
+        for j in range(self.nSweep):
+            power0, thrust0, torque0 = self.CallCCBlade()
+            self.cds[j] += cdStepSize
+            power1, thrust1, torque1 = self.CallCCBlade()
+            self.cds[j] += cdStepSize
+            power2, thrust2, torque2 = self.CallCCBlade()
+            self.cds[j] -= 2* clStepSize
+            self.J[0, offset + j] = (-3*power0 + 4*power1 - power2) / (2* cdStepSize)
+
+        print self.J
 
     def provideJ(self):
 
@@ -141,8 +186,16 @@ class BEMComponent(Component):
             input_keys.append('theta[%d]'%j)
         for j in range(self.n_elements):
             input_keys.append('chord[%d]'%j)
+        for j in range(self.nSweep):
+            input_keys.append('alphas[%d]'%j)
+        for j in range(self.nSweep):
+            input_keys.append('cls[%d]'%j)
+        for j in range(self.nSweep):
+            input_keys.append('cds[%d]'%j)
 
         output_keys = ('power',)
+
+
 
         return input_keys, output_keys, self.J
 
