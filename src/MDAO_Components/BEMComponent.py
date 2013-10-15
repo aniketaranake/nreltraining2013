@@ -38,7 +38,7 @@ class BEMComponent(Component):
         # Inputs
         self.add('theta',  Array(np.zeros([n_elements]), size=[n_elements], iotype="in"))
         self.add('chord',  Array(np.zeros([n_elements]), size=[n_elements], iotype="in"))
-        self.add('alpha',  Array(np.zeros([nSweep]),     size=[nSweep],     iotype="in"))
+        self.add('alphas',  Array(np.zeros([nSweep]),     size=[nSweep],     iotype="in"))
         self.add('cls',    Array(np.zeros([nSweep]),     size=[nSweep],     iotype="in"))
         self.add('cds',    Array(np.zeros([nSweep]),     size=[nSweep],     iotype="in"))
 
