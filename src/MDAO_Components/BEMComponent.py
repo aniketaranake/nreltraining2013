@@ -75,7 +75,20 @@ class BEMComponent(Component):
         #                 nSector=8, precurve=None, precurveTip=0.0, presweep=None, presweepTip=0.0,
         #                 tiploss=True, hubloss=True, wakerotation=True, usecd=True, iterRe=1, derivatives=False):
         #-------------------------------------------------------------------------------------------------------------------
-        blade = CCBlade(self.r, self.chord, self.theta, self.af, self.Rhub, self.Rtip)
+
+        # Just chosen to match Andrew's... no intention of changing this for now
+        B   = 3
+        rho = 1.225
+        mu  = 1.81206e-5
+        tilt = -5.0
+        precone = 2.5
+        yaw = 0.0
+        shearExp = 0.2
+        hubHt = 80.0
+        nSector = 8
+
+        blade = CCBlade(self.r, self.chord, self.theta, self.af, self.Rhub, self.Rtip,
+                        B, rho, mu, precone, tilt, yaw, shearExp, hubHt, nSector)
 
         power, thrust, torque = blade.evaluate([self.Uinf], [self.Omega], [self.pitch]) 
         self.power = power[0]
