@@ -51,7 +51,7 @@ class SU2_CLCD(Assembly):
         myConfig.read('inv_NACA0012.cfg') 
         self.deform.config_in = myConfig
 
-        # Create a dv_vals array, which will be connected to every deform object this assembly contains
+        # Create a master dv_vals array, which will be connected to every deform object this assembly contains
         self.add('dv_vals', Array(np.zeros([self.nDVvals]), size=[self.nDVvals], iotype="in"))
         
         # Create nSweep deform and solve objects
@@ -66,6 +66,7 @@ class SU2_CLCD(Assembly):
         super(SU2_CLCD, self).configure()
 
         for j in range(self.nSweep):
+
             # Connect this assembly's DV vals to each deform object
             for k in range(self.nDVvals):
               self.connect('dv_vals[%d]'%k, 'deform%d.dv_vals[%d]'%(j,k))
