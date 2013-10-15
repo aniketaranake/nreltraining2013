@@ -20,7 +20,7 @@ from SU2.io import Config
 
 
 
-class blade_opt(Assembly):
+class blade_opt_fake(Assembly):
 
   nSweep = 10
   nElements = 17
@@ -38,6 +38,43 @@ class blade_opt(Assembly):
       self.connect('su2.alphas[%d]'%i, 'bem.alphas[%d]'%i)
       self.connect('su2.cds[%d]'%i, 'bem.cds[%d]'%i)
     self.driver.add_objective('-bem.power')
+    self.driver.max_iter = 1000
+
+class blade_opt(Assembly):
+
+  nSweep    = 10  # Points in each alpha-sweep
+  nElements = 17  # Number of BEM sections for CCBlade (BEM code by Andrew Ning)
+  nDVvals   = 38  # Number of Hicks-Henne bump functions
+
+  def configure(self):
+
+    # Add components
+    self.add('su2',SU2_CLCD(nSweep=self.nSweep,nDVvals=self.nDVvals))
+    self.add('bem',BEMComponent(n_elements=self.nElements,nSweep=self.nSweep))
+
+    # Create driver and add components to its workflow
+    self.add('driver',SLSQPdriver())
+    self.driver.workflow.add(['bem','su2'])
+
+    # Design parameters for CCBlade 
+    for i in range(self.nElements):
+      self.driver.add_parameter('bem.theta[%d]'%i,low=-80,high=80)
+      self.driver.add_parameter('bem.chord[%d]'%i,low=1e-8,high=10,start=1)
+
+    # Design parameters for SU^2
+    for i in range(self.nDVvals):
+      self.driver.add_parameter('su2.dv_vals[%d]' % i, low=-.05, high=.05)
+
+    # Connect outputs from SU^2 wrapper to CCBlade
+    for i in range(self.nSweep):
+      self.connect('su2.cls[%d]'%i, 'bem.cls[%d]'%i)
+      self.connect('su2.alphas[%d]'%i, 'bem.alphas[%d]'%i)
+      self.connect('su2.cds[%d]'%i, 'bem.cds[%d]'%i)
+
+    # Objective: minimize negative power
+    self.driver.add_objective('-bem.power')
+
+    # Specify max iterations
     self.driver.max_iter = 1000
 
 if __name__=="__main__":
