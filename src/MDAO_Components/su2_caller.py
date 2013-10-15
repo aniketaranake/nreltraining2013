@@ -10,10 +10,10 @@ from SU2_wrapper.SU2_wrapper import ConfigVar, Config
 
 
 class SU2_CLCD_Fake(Component):
-    def __init__(self, nSweep = 10):
+    def __init__(self, nSweep = 10,alpha_min = -60, alpha_max = 60):
         super(SU2_CLCD_Fake,self).__init__()
-        self.alpha_min = -20
-        self.alpha_max = 20
+        self.alpha_min = alpha_min
+        self.alpha_max = alpha_max
         self.nSweep = nSweep
 
         self.alpha_sweep = np.linspace(self.alpha_min, self.alpha_max, num=nSweep)
