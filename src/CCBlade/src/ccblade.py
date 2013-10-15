@@ -895,7 +895,7 @@ if __name__ == '__main__':
 
     import os
     afinit = CCAirfoil.initFromAerodynFile  # just for shorthand
-    basepath = '5MW_AFFiles' + os.path.sep
+    basepath = '../test/5MW_AFFiles' + os.path.sep
 
     # load all airfoils
     airfoil_types = [0]*8
@@ -952,6 +952,10 @@ if __name__ == '__main__':
     CP, CT, CQ = aeroanalysis.evaluate([Uinf], [Omega], [pitch], coefficient=True)
 
     print CP, CT, CQ
+
+    P, T, Q = aeroanalysis.evaluate([Uinf], [Omega], [pitch])
+
+    print P, T, Q
 
 
     tsr = np.linspace(2, 14, 50)
