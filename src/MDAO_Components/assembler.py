@@ -22,7 +22,7 @@ from SU2.io import Config
 
 class blade_opt_fake(Assembly):
 
-  nSweep = 10
+  nSweep = 40
   nElements = 17
   def configure(self):
     self.add('su2',SU2_CLCD_Fake(nSweep=self.nSweep))
