@@ -69,7 +69,7 @@ class BEMComponent(Component):
 
     def execute(self):
 
-        # Construct turbine ------------------------------------------------------------------------------------------------
+        # Constructor of CCBlade -------------------------------------------------------------------------------------------
         #    def __init__(self, r, chord, theta, af, Rhub, Rtip, B=3, rho=1.225, mu=1.81206e-5,
         #                 precone=0.0, tilt=0.0, yaw=0.0, shearExp=0.2, hubHt=80.0,
         #                 nSector=8, precurve=None, precurveTip=0.0, presweep=None, presweepTip=0.0,
