@@ -55,6 +55,8 @@ class BEMComponent(Component):
 
         # Outputs
         self.add('power', Float(iotype="out"))
+        self.nEvalsExecute = 0
+        self.totalEvals = 0
 
     def load_test_airfoils(self):
         '''Loads the airfoils from Andrew Ning's directory of test airfoils'''
@@ -91,12 +93,15 @@ class BEMComponent(Component):
         #-------------------------------------------------------------------------------------------------------------------
 
         power, thrust, torque = self.CallCCBlade()
-        print "Calling execute"
-        #print power[0]
+
+        self.nEvalsExecute += 1
+        print "Calling execute ", "nExecute", self.nEvalsExecute, "nEvals",self.totalEvals
+        print "theta", self.theta
+        print "power", power[0]
         self.power = power[0]
 
     def CallCCBlade(self):
-
+        self.totalEvals += 1
         # Create a CCAirfoil object using the input alpha sweep
         airfoil = CCAirfoil(self.alphas, [], self.cls, self.cds)
         self.af = [0]*self.n_elements
@@ -145,8 +150,8 @@ class BEMComponent(Component):
         for j in range(self.nSweep):
             self.J[0,self.n_elements*2 + j] = 0
 
-        clStepSize = 1e-8
-        cdStepSize = 1e-8
+        clStepSize = 1e-7
+        cdStepSize = 1e-7
 
         offset = self.n_elements*2 + self.nSweep
         #compute finite difference for derivatives wrt cl
@@ -169,6 +174,8 @@ class BEMComponent(Component):
             self.cds[j] -= 2* clStepSize
             self.J[0, offset + j] = (-3*power0 + 4*power1 - power2) / (2* cdStepSize)
 
+        print self.J
+
     def provideJ(self):
 
         input_keys = []
@@ -184,6 +191,8 @@ class BEMComponent(Component):
             input_keys.append('cds[%d]'%j)
 
         output_keys = ('power',)
+
+
 
         return input_keys, output_keys, self.J
 
