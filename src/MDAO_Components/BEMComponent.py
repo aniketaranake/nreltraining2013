@@ -107,6 +107,16 @@ class BEMComponent(Component):
         self.totalEvals += 1
         # Create a CCAirfoil object using the input alpha sweep
         airfoil = CCAirfoil(self.alphas, [], self.cls, self.cds)
+        
+            
+        # Show cl vs. alpha
+        #newAlphas = np.linspace(self.alphas[0],self.alphas[len(self.alphas)-1], 1000)
+        #newRes = np.linspace(1e7,1e8, 1000)
+        #for i in range(len(newAlphas)):
+        #    cl,cd = airfoil.evaluate(newAlphas[i]/360 * pi,newRes[i])
+        #    print "alpha", newAlphas[i], "\tcl", cl, "\tcd", cd
+        #exit()
+
         self.af = [0]*self.n_elements
 
         for j in range(self.n_elements):
