@@ -11,15 +11,16 @@ from openmdao.main.api import Component, Assembly, set_as_top
 
 class SU2_CLCD_Fake(Component):
 	def __init__(self, nSweep = 10):
+		super(SU2_CLCD_Fake,self).__init__()
 		self.alpha_min = -20
 		self.alpha_max = 20
 		self.nSweep = nSweep
 
 		self.alpha_sweep = np.linspace(self.alpha_min, self.alpha_max, num=nSweep)
 
-		self.alphas = Array(np.zeros([self.nSweep,]), dtype=np.float,shape=[self.nSweep,],iotype="out")
-		self.cls = Array(np.zeros([self.nSweep,]), dtype=np.float,shape=[self.nSweep,],iotype="out")
-		self.cds = Array(np.zeros([self.nSweep,]),dtype=np.float, shape=[self.nSweep,],iotype="out")
+		self.add('alphas',Array(np.zeros([self.nSweep,]), dtype=np.float,shape=[self.nSweep,],iotype="out"))
+		self.add('cls',Array(np.zeros([self.nSweep,]), dtype=np.float,shape=[self.nSweep,],iotype="out"))
+		self.add('cds',Array(np.zeros([self.nSweep,]),dtype=np.float, shape=[self.nSweep,],iotype="out"))
 
 		alpha_data = np.array([-30, -20, -15, -13, 0., 13., 15, 20, 30])
 		cl_data    = np.array([-1.1,-.7, -.8, -1.3,0, 1.3, .8, .7, 1.1])
@@ -30,13 +31,13 @@ class SU2_CLCD_Fake(Component):
 
 	def execute(self):
 		for i in range(self.nSweep):
-			self.alphas.default_value[i] = self.alpha_sweep[i]
-			self.cls.default_value[i] = self.f_cl(self.alpha_sweep[i])
-			self.cds.default_value[i] = self.f_cd(self.alpha_sweep[i])
+			self.alphas[i] = self.alpha_sweep[i]
+			self.cls[i] = self.f_cl(self.alpha_sweep[i])
+			self.cds[i] = self.f_cd(self.alpha_sweep[i])
 
 if __name__ == "__main__":
 	var = SU2_CLCD_Fake(nSweep = 15)
 	var.execute()
-	print var.alphas.default_value
-	print var.cls.default_value
-	print var.cds.default_value
+	print var.alphas
+	print var.cls
+	print var.cds
