@@ -1,1 +1,0 @@
-print "om nom nom nom nom"
