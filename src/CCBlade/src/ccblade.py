@@ -936,18 +936,18 @@ if __name__ == '__main__':
     azimuth = 90
 
     # evaluate distributed loads
-#    Np, Tp = aeroanalysis.distributedAeroLoads(Uinf, Omega, pitch, azimuth)
-#
-#
-#
-#    # plot
+    Np, Tp = aeroanalysis.distributedAeroLoads(Uinf, Omega, pitch, azimuth)
+
+
+
+    # plot
     import matplotlib.pyplot as plt
-#    # rstar = (rload - rload[0]) / (rload[-1] - rload[0])
-#    plt.plot(r, Tp/1e3, 'k', label='lead-lag')
-#    plt.plot(r, Np/1e3, 'r', label='flapwise')
-#    plt.xlabel('blade fraction')
-#    plt.ylabel('distributed aerodynamic loads (kN)')
-#    plt.legend(loc='upper left')
+    # rstar = (rload - rload[0]) / (rload[-1] - rload[0])
+    plt.plot(r, Tp/1e3, 'k', label='lead-lag')
+    plt.plot(r, Np/1e3, 'r', label='flapwise')
+    plt.xlabel('blade fraction')
+    plt.ylabel('distributed aerodynamic loads (kN)')
+    plt.legend(loc='upper left')
 
     CP, CT, CQ = aeroanalysis.evaluate([Uinf], [Omega], [pitch], coefficient=True)
 
