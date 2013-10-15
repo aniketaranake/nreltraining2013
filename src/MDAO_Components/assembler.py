@@ -33,6 +33,7 @@ class blade_opt(Assembly):
 		for i in range(self.nElements):
 			self.driver.add_parameter('bem.theta[%d]'%i,low=-80,high=80)
 			self.driver.add_parameter('bem.chord[%d]'%i,low=1e-8,high=1000)
+		for i in range(self.nSweep):
 			self.connect('su2.cls[%d]'%i, 'bem.cls[%d]'%i)
 			self.connect('su2.alphas[%d]'%i, 'bem.alphas[%d]'%i)
 			self.connect('su2.cds[%d]'%i, 'bem.cds[%d]'%i)

@@ -91,10 +91,10 @@ class BEMComponent(Component):
         nSector = 8
 
         # Create a CCAirfoil object using the input alpha sweep
-        airfoil = CCAirfoil(self.alpha, [], self.cls, self.cds)
+        airfoil = CCAirfoil(self.alphas, [], self.cls, self.cds)
         self.af = [0]*self.n_elements
 
-        for j in range(n_elements):
+        for j in range(self.n_elements):
             self.af[j] = airfoil
 
         blade = CCBlade(self.r, self.chord, self.theta, self.af, self.Rhub, self.Rtip,
