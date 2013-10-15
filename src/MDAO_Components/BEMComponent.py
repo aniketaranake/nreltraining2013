@@ -49,7 +49,7 @@ class BEMComponent(Component):
         # Inputs
         self.add('theta',  Array(np.zeros([n_elements]), size=[n_elements], iotype="in"))
         self.add('chord',  Array(np.zeros([n_elements]), size=[n_elements], iotype="in"))
-        self.add('alphas',  Array(np.zeros([nSweep]),     size=[nSweep],     iotype="in"))
+        self.add('alphas', Array(np.zeros([nSweep]),     size=[nSweep],     iotype="in"))
         self.add('cls',    Array(np.zeros([nSweep]),     size=[nSweep],     iotype="in"))
         self.add('cds',    Array(np.zeros([nSweep]),     size=[nSweep],     iotype="in"))
 
@@ -57,7 +57,7 @@ class BEMComponent(Component):
         self.add('power', Float(iotype="out"))
 
     def load_test_airfoils(self):
-        '''Loads the airfoils from Andre Ning's directory of test airfoils'''
+        '''Loads the airfoils from Andrew Ning's directory of test airfoils'''
         # Path for output files
         afinit = CCAirfoil.initFromAerodynFile  # just for shorthand
         basepath = path.join(path.abspath('.'),'../CCBlade/test/5MW_AFFiles/')

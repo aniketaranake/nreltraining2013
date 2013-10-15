@@ -5,8 +5,8 @@ from scipy.interpolate import interp1d
 # OpenMDAO imports
 from openmdao.lib.datatypes.api import Float, Int, Array, VarTree, File
 from openmdao.main.api import Component, Assembly, set_as_top
-#from SU2_wrapper import Solve, Deform
-#from SU2_wrapper.SU2_wrapper import ConfigVar, Config
+from SU2_wrapper import Solve, Deform
+from SU2_wrapper.SU2_wrapper import ConfigVar, Config
 
 
 class SU2_CLCD_Fake(Component):
@@ -34,6 +34,47 @@ class SU2_CLCD_Fake(Component):
 			self.alphas[i] = self.alpha_sweep[i]
 			self.cls[i] = self.f_cl(self.alpha_sweep[i])
 			self.cds[i] = self.f_cd(self.alpha_sweep[i])
+
+
+class SU2_CLCD(Assembly):
+    '''An assembly with a run-once driver that contains a deform object and a solve object from SU2_wrapper'''
+
+    def __init__(self, nSweep=10, nDVvals=38):
+        super(SU2_CLCD, self).__init__()
+
+        # Store the inputs, we'll need them again
+        self.nSweep  = nSweep
+        self.nDVvals = nDVvals
+
+        # Open a config file 
+        myConfig = Config()
+        myConfig.read('inv_NACA0012.cfg') 
+        self.deform.config_in = myConfig
+
+        # Create a dv_vals array, which will be connected to every deform object this assembly contains
+        self.add('dv_vals', Array(np.zeros([self.nDVvals]), size=[self.nDVvals], iotype="in"))
+        
+        # Create nSweep deform and solve objects
+        for j in range(self.nSweep):
+
+            # Add the two components
+            self.add('deform%d'%j, Deform())
+            self.add('solve%d' %j, Solve() )
+
+
+    def configure(self):
+        super(SU2_CLCD, self).configure()
+
+        for j in range(self.nSweep):
+            # Connect this assembly's DV vals to each deform object
+            for k in range(self.nDVvals):
+              self.connect('dv_vals[%d]'%k, 'deform%d.dv_vals[%d]'%(j,k))
+
+            # Connect deforms to solves
+            self.connect('deform%d.mesh_file' %j, 'solve%d.mesh_file'%j)
+            self.connect('deform%d.config_out'%j, 'solve%d.config_in'%j)
+
+        self.workflow.add(['deform','solve'])
 
 if __name__ == "__main__":
 	var = SU2_CLCD_Fake(nSweep = 15)
