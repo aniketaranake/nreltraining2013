@@ -101,7 +101,7 @@ class BEMComponent(Component):
                         B, rho, mu, precone, tilt, yaw, shearExp, hubHt, nSector)
 
         power, thrust, torque = blade.evaluate([self.Uinf], [self.Omega], [self.pitch]) 
-        #print power[0]
+        print power[0]
         self.power = power[0]
 
 
