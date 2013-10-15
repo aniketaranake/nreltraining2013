@@ -28,19 +28,22 @@ class BEMComponent(Component):
     pitch = 0.0
     Omega = Uinf*tsr/Rtip * 30.0/pi  # convert to RPM
 
-    def __init__(self, n_elements=17):
+    def __init__(self, n_elements=17, nSweep=8):
 
         super(BEMComponent, self).__init__()
+
+        self.n_elements = n_elements
+        self.nSweep     = nSweep
 
         # Inputs
         self.add('theta',  Array(np.zeros([n_elements]), size=[n_elements], iotype="in"))
         self.add('chord',  Array(np.zeros([n_elements]), size=[n_elements], iotype="in"))
+        self.add('alpha',  Array(np.zeros([nSweep]),     size=[nSweep],     iotype="in"))
+        self.add('cls',    Array(np.zeros([nSweep]),     size=[nSweep],     iotype="in"))
+        self.add('cds',    Array(np.zeros([nSweep]),     size=[nSweep],     iotype="in"))
 
         # Outputs
         self.add('power', Float(iotype="out"))
-
-        # TODO: Replace this with another way of determining af
-        self.load_test_airfoils()
 
     def load_test_airfoils(self):
         '''Loads the airfoils from Andre Ning's directory of test airfoils'''
@@ -86,6 +89,13 @@ class BEMComponent(Component):
         shearExp = 0.2
         hubHt = 80.0
         nSector = 8
+
+        # Create a CCAirfoil object using the input alpha sweep
+        airfoil = CCAirfoil(self.alpha, [], self.cls, self.cds)
+        self.af = [0]*self.n_elements
+
+        for j in range(n_elements):
+            self.af[j] = airfoil
 
         blade = CCBlade(self.r, self.chord, self.theta, self.af, self.Rhub, self.Rtip,
                         B, rho, mu, precone, tilt, yaw, shearExp, hubHt, nSector)
