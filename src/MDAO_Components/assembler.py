@@ -37,9 +37,10 @@ class blade_opt(Assembly):
 			self.connect('su2.cls[%d]'%i, 'bem.cls[%d]'%i)
 			self.connect('su2.alphas[%d]'%i, 'bem.alphas[%d]'%i)
 			self.connect('su2.cds[%d]'%i, 'bem.cds[%d]'%i)
-		self.driver.add_objective('bem.power')
+		self.driver.add_objective('-bem.power')
 
 if __name__=="__main__":
 	bo = blade_opt()
 	bo.run()
 	print bo.driver.error_code
+	#print bo.driver.__dict__

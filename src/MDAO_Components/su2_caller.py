@@ -22,9 +22,9 @@ class SU2_CLCD_Fake(Component):
 		self.add('cls',Array(np.zeros([self.nSweep,]), dtype=np.float,shape=[self.nSweep,],iotype="out"))
 		self.add('cds',Array(np.zeros([self.nSweep,]),dtype=np.float, shape=[self.nSweep,],iotype="out"))
 
-		alpha_data = np.array([-30, -20, -15, -13, 0., 13., 15, 20, 30])
-		cl_data    = np.array([-1.1,-.7, -.8, -1.3,0, 1.3, .8, .7, 1.1])
-		cd_data    = np.array([1.,0.6,0.3, 1e-2, 0., 1e-2, 0.3, 0.6, 1.]) + 1e-5
+		alpha_data = np.array([-90,-30, -20, -15, -13, 0., 13., 15, 20, 30,90])
+		cl_data    = np.array([0,-1.1,-.7, -.8, -1.3,0, 1.3, .8, .7, 1.1,0])
+		cd_data    = np.array([5,1.,0.6,0.3, 1e-2, 0., 1e-2, 0.3, 0.6, 1.,5]) + 1e-5
 
 		self.f_cl = interp1d(alpha_data, cl_data, fill_value=0.001, bounds_error=False)
 		self.f_cd = interp1d(alpha_data, cd_data, fill_value=0.001, bounds_error=False)
