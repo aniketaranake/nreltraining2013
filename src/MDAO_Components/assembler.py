@@ -22,8 +22,10 @@ from SU2.io import Config
 
 class blade_opt_fake(Assembly):
 
-  nSweep = 40
+  nSweep = 45
   nElements = 17
+  alpha_min = -10
+  alpha_max = 80
   def configure(self):
     self.add('su2',SU2_CLCD_Fake(nSweep=self.nSweep))
     self.add('bem',BEMComponent(n_elements=self.nElements,nSweep=self.nSweep))
@@ -31,7 +33,7 @@ class blade_opt_fake(Assembly):
     self.driver.workflow.add(['bem','su2'])
 
     for i in range(self.nElements):
-      self.driver.add_parameter('bem.theta[%d]'%i,low=-80,high=80)
+      self.driver.add_parameter('bem.theta[%d]'%i,low=self.alpha_min,high=self.alpha_max)
       self.driver.add_parameter('bem.chord[%d]'%i,low=1e-8,high=10,start=1)
     for i in range(self.nSweep):
       self.connect('su2.cls[%d]'%i, 'bem.cls[%d]'%i)

@@ -91,9 +91,9 @@ if __name__ == "__main__":
     if do_fake:
        var = SU2_CLCD_Fake(nSweep = 15)
        var.execute()
-       print var.alphas
-       print var.cls
-       print var.cds
+       #print var.alphas
+       #print var.cls
+       #print var.cds
     
     else:
         nSweep = 10

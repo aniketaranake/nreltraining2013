@@ -101,9 +101,9 @@ class BEMComponent(Component):
         self.power = power[0]
 
     def CallCCBlade(self):
-        print "alpha",self.alphas
-        print "cls",self.cls
-        print "cds",self.cds
+        #print "alpha",self.alphas
+        #print "cls",self.cls
+        #print "cds",self.cds
         self.totalEvals += 1
         # Create a CCAirfoil object using the input alpha sweep
         airfoil = CCAirfoil(self.alphas, [], self.cls, self.cds)
@@ -153,8 +153,8 @@ class BEMComponent(Component):
         for j in range(self.nSweep):
             self.J[0,self.n_elements*2 + j] = 0
 
-        clStepSize = 1e-2
-        cdStepSize = 1e-2
+        clStepSize = 1e-8
+        cdStepSize = 1e-8
 
         offset = self.n_elements*2 + self.nSweep
         #compute finite difference for derivatives wrt cl
