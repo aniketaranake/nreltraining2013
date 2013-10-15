@@ -28,6 +28,17 @@ class BEMComponent(Component):
     pitch = 0.0
     Omega = Uinf*tsr/Rtip * 30.0/pi  # convert to RPM
 
+    # Just chosen to match Andrew's... no intention of changing this for now
+    B   = 3
+    rho = 1.225
+    mu  = 1.81206e-5
+    tilt = -5.0
+    precone = 2.5
+    yaw = 0.0
+    shearExp = 0.2
+    hubHt = 80.0
+    nSector = 8
+
     def __init__(self, n_elements=17, nSweep=8):
 
         super(BEMComponent, self).__init__()
@@ -79,16 +90,27 @@ class BEMComponent(Component):
         #                 tiploss=True, hubloss=True, wakerotation=True, usecd=True, iterRe=1, derivatives=False):
         #-------------------------------------------------------------------------------------------------------------------
 
-        # Just chosen to match Andrew's... no intention of changing this for now
-        B   = 3
-        rho = 1.225
-        mu  = 1.81206e-5
-        tilt = -5.0
-        precone = 2.5
-        yaw = 0.0
-        shearExp = 0.2
-        hubHt = 80.0
-        nSector = 8
+        # Create a CCAirfoil object using the input alpha sweep
+        airfoil = CCAirfoil(self.alphas, [], self.cls, self.cds)
+        self.af = [0]*self.n_elements
+
+        for j in range(self.n_elements):
+            self.af[j] = airfoil
+
+        blade = CCBlade(self.r, self.chord, self.theta, self.af, self.Rhub, self.Rtip,
+                        self.B, self.rho, self.mu, self.precone, self.tilt, self.yaw, self.shearExp, self.hubHt, self.nSector)
+
+        power, thrust, torque = blade.evaluate([self.Uinf], [self.Omega], [self.pitch]) 
+        print power[0]
+        self.power = power[0]
+
+    def linearize(self):
+        '''Compute Jacobian d(outputs)/d(inputs)
+                   theta  chord  (TODO: alphas  cls  cds)
+           ------|----------------------------------- 
+           power |
+        
+        '''
 
         # Create a CCAirfoil object using the input alpha sweep
         airfoil = CCAirfoil(self.alphas, [], self.cls, self.cds)
@@ -98,11 +120,31 @@ class BEMComponent(Component):
             self.af[j] = airfoil
 
         blade = CCBlade(self.r, self.chord, self.theta, self.af, self.Rhub, self.Rtip,
-                        B, rho, mu, precone, tilt, yaw, shearExp, hubHt, nSector)
+                        self.B, self.rho, self.mu, self.precone, self.tilt, self.yaw, self.shearExp, self.hubHt, self.nSector,
+                        derivatives=True)
 
-        power, thrust, torque = blade.evaluate([self.Uinf], [self.Omega], [self.pitch]) 
-        print power[0]
-        self.power = power[0]
+        # Run BEM code and extract derivatives
+        self.P, self.T, self.Q, self.dP_ds, self.dT_ds, self.dQ_ds, self.dP_dv, self.dT_dv, \
+        self.dQ_dv = blade.evaluate([self.Uinf], [self.Omega], [self.pitch], coefficient=False)
+
+        # Store relevant parts of Jacobian in self.J
+        self.J = np.zeros([1,2*self.n_elements])
+        for j in range(self.n_elements):
+            self.J[0,j] = self.dP_dv[0,2,j]
+        for j in range(self.n_elements):
+            self.J[0,self.n_elements+j] = self.dP_dv[0, 1, j]
+
+    def provideJ(self):
+
+        input_keys = []
+        for j in range(self.n_elements):
+            input_keys.append('theta[%d]'%j)
+        for j in range(self.n_elements):
+            input_keys.append('chord[%d]'%j)
+
+        output_keys = ('power',)
+
+        return input_keys, output_keys, self.J
 
 
 if __name__=="__main__":
