@@ -8,6 +8,9 @@ from openmdao.main.api import Component, Assembly, set_as_top
 from SU2_wrapper import Solve, Deform
 from SU2_wrapper.SU2_wrapper import ConfigVar, Config
 
+# SU2_PY imports
+import SU2, SU2.io
+from SU2.io import redirect
 
 class SU2_CLCD_Fake(Component):
     def __init__(self, nSweep = 10,alpha_min = -60, alpha_max = 60):
@@ -35,6 +38,39 @@ class SU2_CLCD_Fake(Component):
             self.cls[i] = self.f_cl(self.alpha_sweep[i])
             self.cds[i] = self.f_cd(self.alpha_sweep[i])
 
+class SolveWithFolder(Solve):
+
+    def __init__(self, folder=None):
+
+        self.folder = folder
+        super(SolveWithFolder,self).__init__()
+
+    def execute(self):
+        if self.folder:
+           pull = ['inv_NACA0012.cfg']
+           link = ['mesh_NACA0012_inv.su2'] 
+           force = True
+           with redirect.folder(self.folder, pull, link, force) as push:
+              super(SolveWithFolder,self).execute()
+        else:
+            super(SolveWithFolder,self).execute()
+
+class DeformWithFolder(Deform):
+
+    def __init__(self, folder=None):
+
+        self.folder = folder
+        super(DeformWithFolder,self).__init__()
+
+    def execute(self):
+        if self.folder:
+           pull = ['inv_NACA0012.cfg']
+           link = ['mesh_NACA0012_inv.su2'] 
+           force = True
+           with redirect.folder(self.folder, pull, link, force) as push:
+              super(DeformWithFolder,self).execute()
+        else:
+            super(DeformWithFolder,self).execute()
 
 class SU2_CLCD(Assembly):
     '''An assembly with a run-once driver that contains a deform object and a solve object from SU2_wrapper'''
@@ -70,8 +106,8 @@ class SU2_CLCD(Assembly):
         for j in range(self.nSweep):
 
             # Add the two components
-            this_deform = self.add('deform%d'%j, Deform())
-            this_solve  = self.add('solve%d' %j, Solve() )
+            this_deform = self.add('deform%d'%j, DeformWithFolder(folder="sweep%d"%j))
+            this_solve  = self.add('solve%d' %j, SolveWithFolder(folder="sweep%d"%j) )
 
             # Give the deform object our config object
             myConfig.AoA = self.alpha_sweep[j]
