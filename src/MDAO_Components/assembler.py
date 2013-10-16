@@ -9,7 +9,7 @@ from su2_caller import SU2_CLCD_Fake
 # OpenMDAO imports
 from openmdao.main.api import Component, Assembly, VariableTree
 from openmdao.lib.datatypes.api import Float, Int, Array, VarTree
-from openmdao.lib.drivers.api import SLSQPdriver, COBYLAdriver, CONMINdriver
+from openmdao.lib.drivers.api import SLSQPdriver
 
 #from custom_opt import SLSQPdriver
 

@@ -39,12 +39,14 @@ class SU2_CLCD_Fake(Component):
 class SU2_CLCD(Assembly):
     '''An assembly with a run-once driver that contains a deform object and a solve object from SU2_wrapper'''
 
-    nSweep  = 10
-    nDVvals = 38
+    nSweep    = 10
+    nDVvals   = 38
+    alpha_min = -60
+    alpha_max = 60
 
     dv_vals = Array([], iotype="in")
 
-    def __init__(self, nSweep=10, nDVvals=38):
+    def __init__(self, nSweep=10, nDVvals=38, alpha_min = -60, alpha_max = 60):
         super(SU2_CLCD, self).__init__()
 
         # Store the inputs, we'll need them again
@@ -60,7 +62,10 @@ class SU2_CLCD(Assembly):
 
         # Create a master dv_vals array, which will be connected to every deform object this assembly contains
         self.dv_vals = np.zeros([self.nDVvals])
-        
+
+        # Linear spacing of angle of attacks
+        self.alpha_sweep = np.linspace(self.alpha_min, self.alpha_max, num=nSweep)
+
         # Create nSweep deform and solve objects
         for j in range(self.nSweep):
 
@@ -69,13 +74,12 @@ class SU2_CLCD(Assembly):
             this_solve  = self.add('solve%d' %j, Solve() )
 
             # Give the deform object our config object
+            myConfig.AoA = self.alpha_sweep[j]
             this_deform.config_in = myConfig
-
-            # TODO: Change the AoA in each config object
 
             # Connect the master dv_vals to the dv_vals of each deform object
             for k in range(self.nDVvals):
-              self.connect('dv_vals[%d]'%k, 'deform%d.dv_vals[%d]'%(j,k))
+                self.connect('dv_vals[%d]'%k, 'deform%d.dv_vals[%d]'%(j,k))
 
             # Connect deforms to solves
             self.connect('deform%d.mesh_file' %j, 'solve%d.mesh_file'%j)
