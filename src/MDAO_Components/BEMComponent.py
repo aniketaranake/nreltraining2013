@@ -76,6 +76,7 @@ class BEMComponent(Component):
             self.input_keys.append('cls[%d]'%j)
         for j in range(self.nSweep):
             self.input_keys.append('cds[%d]'%j)
+        self.J = np.zeros([1,2*self.n_elements + 3*self.nSweep])
 
         self.output_keys = ('power',)
 
@@ -174,14 +175,13 @@ class BEMComponent(Component):
         self.dQ_dv = blade.evaluate([self.Uinf], [self.Omega], [self.pitch], coefficient=False)
 
         # Store relevant parts of Jacobian in self.J
-        self.J = np.zeros([1,2*self.n_elements + 3*self.nSweep])
-        for j in range(self.n_elements):
+        for j in xrange(self.n_elements):
             self.J[0,j] = self.dP_dv[0,2,j]
-        for j in range(self.n_elements):
+        for j in xrange(self.n_elements):
             self.J[0,self.n_elements+j] = self.dP_dv[0, 1, j]
 
         # Say the derivative wrt. alpha is zero
-        for j in range(self.nSweep):
+        for j in xrange(self.nSweep):
             self.J[0,self.n_elements*2 + j] = 0
 
         clStepSize = 1e-8
@@ -189,7 +189,7 @@ class BEMComponent(Component):
 
         offset = self.n_elements*2 + self.nSweep
         #compute finite difference for derivatives wrt cl
-        for j in range(self.nSweep):
+        for j in xrange(self.nSweep):
             '''
             self.cls[j] += clStepSize
             power1, thrust1, torque1 = self.CallCCBlade()
@@ -198,12 +198,12 @@ class BEMComponent(Component):
             self.cls[j] += clStepSize
             self.J[0, offset + j] = (power1 -power2) / (2 * clStepSize)
             '''
-            self.J[0, offset + j] = 10
+            self.J[0, offset + j] = 0
 
 
         offset = self.n_elements*2 + 2*self.nSweep
         #compute finite difference for derivatives wrt cl
-        for j in range(self.nSweep):
+        for j in xrange(self.nSweep):
             '''
             power0, thrust0, torque0 = self.CallCCBlade()
             self.cds[j] += cdStepSize
@@ -213,7 +213,7 @@ class BEMComponent(Component):
             self.cds[j] -= 2* clStepSize
             self.J[0, offset + j] = (-3*power0 + 4*power1 - power2) / (2* cdStepSize)
             '''
-            self.J[0, offset + j] = 10
+            self.J[0, offset + j] = 0
 
         #print self.J
 

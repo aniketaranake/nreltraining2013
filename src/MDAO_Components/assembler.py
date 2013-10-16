@@ -22,7 +22,7 @@ from SU2.io import Config
 
 class blade_opt_fake(Assembly):
 
-  nSweep = 20
+  nSweep = 70
   nElements = 17
   alpha_min = -10
   alpha_max = 80
