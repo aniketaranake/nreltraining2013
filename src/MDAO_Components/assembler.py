@@ -18,37 +18,6 @@ from openmdao.lib.casehandlers.api import DumpCaseRecorder
 # SU^2 imports
 from SU2.io import Config
 
-
-
-class blade_opt_fake(Assembly):
-
-  nElements = 17
-  alpha_min = -10
-  alpha_max = 80
-  optimizeChord = False
-  def configure(self):
-    alpha_sweep = np.linspace(self.alpha_min, self.alpha_max,10)
-    self.nSweep = len(alpha_sweep)
-
-    self.add('su2',SU2_CLCD_Fake(alpha_sweep))
-    self.add('bem',BEMComponent(alpha_sweep, n_elements=self.nElements,optChord=self.optimizeChord))
-    self.add('driver',SLSQPdriver())
-    self.driver.workflow.add(['bem','su2'])
-
-    for i in range(self.nElements):
-      self.driver.add_parameter('bem.theta[%d]'%i,low=self.alpha_min,high=self.alpha_max)
-      if self.optimizeChord:
-        self.driver.add_parameter('bem.chord[%d]'%i,low=1e-8,high=10,start=1)
-    for i in range(self.nSweep):
-      self.connect('su2.cls[%d]'%i, 'bem.cls[%d]'%i)
-      self.connect('su2.cds[%d]'%i, 'bem.cds[%d]'%i)
-    self.driver.add_objective('-bem.power')
-    self.driver.maxiter = 100000
-    self.driver.iprint = 1
-    self.driver.accuracy = 1e-8
-    for item in  self.driver.__dict__:
-      print item
-
 class blade_opt(Assembly):
 
     nElements = 17  # Number of BEM sections for CCBlade (BEM code by Andrew Ning)
