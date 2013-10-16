@@ -95,9 +95,9 @@ class BEMComponent(Component):
         power, thrust, torque = self.CallCCBlade()
 
         self.nEvalsExecute += 1
-        print "Calling execute ", "nExecute", self.nEvalsExecute, "nEvals",self.totalEvals
-        print "theta", self.theta
-        print "power", power[0]
+        #print "Calling execute ", "nExecute", self.nEvalsExecute, "nEvals",self.totalEvals
+        #print "theta", self.theta
+        #print "power", power[0]
         self.power = power[0]
 
     def CallCCBlade(self):
@@ -135,7 +135,7 @@ class BEMComponent(Component):
         
         '''
 
-        print "Calling linearize"
+        #print "Calling linearize"
         
         # Create a CCAirfoil object using the input alpha sweep
         airfoil = CCAirfoil(self.alphas, [], self.cls, self.cds)
@@ -169,16 +169,21 @@ class BEMComponent(Component):
         offset = self.n_elements*2 + self.nSweep
         #compute finite difference for derivatives wrt cl
         for j in range(self.nSweep):
+            '''
             self.cls[j] += clStepSize
             power1, thrust1, torque1 = self.CallCCBlade()
             self.cls[j] -= 2*clStepSize
             power2, thrust2, torque2 = self.CallCCBlade()
             self.cls[j] += clStepSize
             self.J[0, offset + j] = (power1 -power2) / (2 * clStepSize)
+            '''
+            self.J[0, offset + j] = 10
+
 
         offset = self.n_elements*2 + 2*self.nSweep
         #compute finite difference for derivatives wrt cl
         for j in range(self.nSweep):
+            '''
             power0, thrust0, torque0 = self.CallCCBlade()
             self.cds[j] += cdStepSize
             power1, thrust1, torque1 = self.CallCCBlade()
@@ -186,8 +191,10 @@ class BEMComponent(Component):
             power2, thrust2, torque2 = self.CallCCBlade()
             self.cds[j] -= 2* clStepSize
             self.J[0, offset + j] = (-3*power0 + 4*power1 - power2) / (2* cdStepSize)
+            '''
+            self.J[0, offset + j] = 10
 
-        print self.J
+        #print self.J
 
     def provideJ(self):
 
