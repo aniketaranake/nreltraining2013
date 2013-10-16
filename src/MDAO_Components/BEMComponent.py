@@ -39,24 +39,46 @@ class BEMComponent(Component):
     hubHt = 80.0
     nSector = 8
 
-    def __init__(self, n_elements=17, nSweep=8):
+    def __init__(self, n_elements=17, nSweep=8,optChord=False):
 
         super(BEMComponent, self).__init__()
-
         self.n_elements = n_elements
         self.nSweep     = nSweep
 
         # Inputs
         self.add('theta',  Array(np.zeros([n_elements]), size=[n_elements], iotype="in"))
-        self.add('chord',  Array(np.zeros([n_elements]), size=[n_elements], iotype="in"))
         self.add('alphas', Array(np.zeros([nSweep]),     size=[nSweep],     iotype="in"))
         self.add('cls',    Array(np.zeros([nSweep]),     size=[nSweep],     iotype="in"))
         self.add('cds',    Array(np.zeros([nSweep]),     size=[nSweep],     iotype="in"))
+
+        if optChord:
+            self.add('chord',  Array(np.zeros([n_elements]), size=[n_elements], iotype="in"))
+        else:
+            if n_elements != 17:
+                error("Must have 17 elements")
+            self.chord = np.array([3.542, 3.854, 4.167, 4.557, 4.652, 4.458, 4.249, 4.007, 3.748,
+                      3.502, 3.256, 3.010, 2.764, 2.518, 2.313, 2.086, 1.419])
 
         # Outputs
         self.add('power', Float(iotype="out"))
         self.nEvalsExecute = 0
         self.totalEvals = 0
+
+        # Set up keys for j
+        self.input_keys = []
+        for j in range(self.n_elements):
+            self.input_keys.append('theta[%d]'%j)
+        for j in range(self.n_elements):
+            self.input_keys.append('chord[%d]'%j)
+        for j in range(self.nSweep):
+            self.input_keys.append('alphas[%d]'%j)
+        for j in range(self.nSweep):
+            self.input_keys.append('cls[%d]'%j)
+        for j in range(self.nSweep):
+            self.input_keys.append('cds[%d]'%j)
+        self.J = np.zeros([1,2*self.n_elements + 3*self.nSweep])
+
+        self.output_keys = ('power',)
 
     def load_test_airfoils(self):
         '''Loads the airfoils from Andrew Ning's directory of test airfoils'''
@@ -95,9 +117,9 @@ class BEMComponent(Component):
         power, thrust, torque = self.CallCCBlade()
 
         self.nEvalsExecute += 1
-        print "Calling execute ", "nExecute", self.nEvalsExecute, "nEvals",self.totalEvals
-        print "theta", self.theta
-        print "power", power[0]
+        #print "Calling execute ", "nExecute", self.nEvalsExecute, "nEvals",self.totalEvals
+        #print "theta", self.theta
+        #print "power", power[0]
         self.power = power[0]
 
     def CallCCBlade(self):
@@ -153,14 +175,13 @@ class BEMComponent(Component):
         self.dQ_dv = blade.evaluate([self.Uinf], [self.Omega], [self.pitch], coefficient=False)
 
         # Store relevant parts of Jacobian in self.J
-        self.J = np.zeros([1,2*self.n_elements + 3*self.nSweep])
-        for j in range(self.n_elements):
+        for j in xrange(self.n_elements):
             self.J[0,j] = self.dP_dv[0,2,j]
-        for j in range(self.n_elements):
+        for j in xrange(self.n_elements):
             self.J[0,self.n_elements+j] = self.dP_dv[0, 1, j]
 
         # Say the derivative wrt. alpha is zero
-        for j in range(self.nSweep):
+        for j in xrange(self.nSweep):
             self.J[0,self.n_elements*2 + j] = 0
 
         clStepSize = 1e-8
@@ -168,17 +189,22 @@ class BEMComponent(Component):
 
         offset = self.n_elements*2 + self.nSweep
         #compute finite difference for derivatives wrt cl
-        for j in range(self.nSweep):
+        for j in xrange(self.nSweep):
+            '''
             self.cls[j] += clStepSize
             power1, thrust1, torque1 = self.CallCCBlade()
             self.cls[j] -= 2*clStepSize
             power2, thrust2, torque2 = self.CallCCBlade()
             self.cls[j] += clStepSize
             self.J[0, offset + j] = (power1 -power2) / (2 * clStepSize)
+            '''
+            self.J[0, offset + j] = 0
+
 
         offset = self.n_elements*2 + 2*self.nSweep
         #compute finite difference for derivatives wrt cl
-        for j in range(self.nSweep):
+        for j in xrange(self.nSweep):
+            '''
             power0, thrust0, torque0 = self.CallCCBlade()
             self.cds[j] += cdStepSize
             power1, thrust1, torque1 = self.CallCCBlade()
@@ -186,28 +212,13 @@ class BEMComponent(Component):
             power2, thrust2, torque2 = self.CallCCBlade()
             self.cds[j] -= 2* clStepSize
             self.J[0, offset + j] = (-3*power0 + 4*power1 - power2) / (2* cdStepSize)
+            '''
+            self.J[0, offset + j] = 0
 
-        print self.J
+        #print self.J
 
     def provideJ(self):
-
-        input_keys = []
-        for j in range(self.n_elements):
-            input_keys.append('theta[%d]'%j)
-        for j in range(self.n_elements):
-            input_keys.append('chord[%d]'%j)
-        for j in range(self.nSweep):
-            input_keys.append('alphas[%d]'%j)
-        for j in range(self.nSweep):
-            input_keys.append('cls[%d]'%j)
-        for j in range(self.nSweep):
-            input_keys.append('cds[%d]'%j)
-
-        output_keys = ('power',)
-
-
-
-        return input_keys, output_keys, self.J
+        return self.input_keys, self.output_keys, self.J
 
 
 if __name__=="__main__":
