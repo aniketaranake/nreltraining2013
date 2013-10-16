@@ -14,11 +14,6 @@ from os import path
 
 class BEMComponent(Component):
     '''Component to evaluate wind turbine performance for a given twist and taper'''
-
-    # Geometry to match that of Andrew's test case
-    r = np.array([2.8667, 5.6000, 8.3333, 11.7500, 15.8500, 19.9500, 24.0500,
-                  28.1500, 32.2500, 36.3500, 40.4500, 44.5500, 48.6500, 52.7500,
-                  56.1667, 58.9000, 61.6333])
     Rhub = 1.5
     Rtip = 63.
 
@@ -39,22 +34,23 @@ class BEMComponent(Component):
     hubHt = 80.0
     nSector = 8
 
-    def __init__(self, alpha_sweep, n_elements=17, optChord=False):
+    def __init__(self, alpha_sweep, r, optChord=False):
 
         super(BEMComponent, self).__init__()
-        self.n_elements  = n_elements
+        self.r           = r
+        self.n_elements  = len(r)
         self.alpha_sweep = alpha_sweep
         self.nSweep      = len(alpha_sweep)
 
         # Inputs
-        self.add('theta',  Array(np.zeros([n_elements]), size=[n_elements], iotype="in"))
+        self.add('theta',  Array(np.zeros([self.n_elements]), size=[self.n_elements], iotype="in"))
         self.add('cls',    Array(np.zeros([self.nSweep]),     size=[self.nSweep],     iotype="in"))
         self.add('cds',    Array(np.zeros([self.nSweep]),     size=[self.nSweep],     iotype="in"))
 
         if optChord:
-            self.add('chord',  Array(np.zeros([n_elements]), size=[n_elements], iotype="in"))
+            self.add('chord',  Array(np.zeros([self.n_elements]), size=[self.n_elements], iotype="in"))
         else:
-            if n_elements != 17:
+            if self.n_elements != 17:
                 error("Must have 17 elements")
             self.chord = np.array([3.542, 3.854, 4.167, 4.557, 4.652, 4.458, 4.249, 4.007, 3.748,
                       3.502, 3.256, 3.010, 2.764, 2.518, 2.313, 2.086, 1.419])
@@ -98,9 +94,11 @@ class BEMComponent(Component):
         # place at appropriate radial stations
         af_idx = [0, 0, 1, 2, 3, 3, 4, 5, 5, 6, 6, 7, 7, 7, 7, 7, 7]
     
-        self.af = [0]*len(self.r)
+        af = [0]*len(self.r)
         for i in range(len(self.r)):
-            self.af[i] = airfoil_types[af_idx[i]]
+            af[i] = airfoil_types[af_idx[i]]
+
+        return af
 
 
     def execute(self):
@@ -121,14 +119,9 @@ class BEMComponent(Component):
         self.power = power[0]
 
     def CallCCBlade(self):
-        #print "alpha",self.alphas
-        #print "cls",self.cls
-        #print "cds",self.cds
+
         self.totalEvals += 1
-        # Create a CCAirfoil object using the input alpha sweep
-        airfoil = CCAirfoil(self.alpha_sweep, [], self.cls, self.cds)
-        
-            
+
         # Show cl vs. alpha
         #newAlphas = np.linspace(self.alphas[0],self.alphas[len(self.alphas)-1], 1000)
         #newRes = np.linspace(1e7,1e8, 1000)
@@ -137,15 +130,32 @@ class BEMComponent(Component):
         #    print "alpha", newAlphas[i], "\tcl", cl, "\tcd", cd
         #exit()
 
-        self.af = [0]*self.n_elements
-
-        for j in range(self.n_elements):
-            self.af[j] = airfoil
-
-        blade = CCBlade(self.r, self.chord, self.theta, self.af, self.Rhub, self.Rtip,
+        af    = self.generate_af()
+        blade = CCBlade(self.r, self.chord, self.theta, af, self.Rhub, self.Rtip,
                         self.B, self.rho, self.mu, self.precone, self.tilt, self.yaw, self.shearExp, self.hubHt, self.nSector)
 
         return blade.evaluate([self.Uinf], [self.Omega], [self.pitch]) 
+
+    def generate_af(self):
+
+        # Create a CCAirfoil object using the input alpha sweep
+        su2_airfoil = CCAirfoil(self.alpha_sweep, [], self.cls, self.cds)
+
+        # load cylinder files
+        afinit = CCAirfoil.initFromAerodynFile  # just for shorthand
+        basepath = path.join(path.abspath('.'),'../CCBlade/test/5MW_AFFiles/')
+        cylinder1 = afinit(basepath + 'Cylinder1.dat')
+        cylinder2 = afinit(basepath + 'Cylinder2.dat')
+
+        # Collect airfoils into list 
+        af = [0]*self.n_elements
+        af[0] = cylinder1
+        af[1] = cylinder1
+        af[2] = cylinder2
+        for j in range(0,self.n_elements):
+            af[j] = su2_airfoil
+
+        return af
 
     def linearize(self):
         '''Compute Jacobian d(outputs)/d(inputs)
@@ -157,14 +167,8 @@ class BEMComponent(Component):
 
         print "Calling linearize"
         
-        # Create a CCAirfoil object using the input alpha sweep
-        airfoil = CCAirfoil(self.alpha_sweep, [], self.cls, self.cds)
-        self.af = [0]*self.n_elements
-
-        for j in range(self.n_elements):
-            self.af[j] = airfoil
-
-        blade = CCBlade(self.r, self.chord, self.theta, self.af, self.Rhub, self.Rtip,
+        af    = self.generate_af()
+        blade = CCBlade(self.r, self.chord, self.theta, af, self.Rhub, self.Rtip,
                         self.B, self.rho, self.mu, self.precone, self.tilt, self.yaw, self.shearExp, self.hubHt, self.nSector,
                         derivatives=True)
 
@@ -220,13 +224,20 @@ if __name__=="__main__":
 
     # Andrew's test case
     n_elems = 17
+
+    # Geometry to match that of Andrew's test case
+    r = np.array([2.8667, 5.6000, 8.3333, 11.7500, 15.8500, 19.9500, 24.0500,
+                  28.1500, 32.2500, 36.3500, 40.4500, 44.5500, 48.6500, 52.7500,
+                  56.1667, 58.9000, 61.6333])
     chord = np.array([3.542, 3.854, 4.167, 4.557, 4.652, 4.458, 4.249, 4.007, 3.748,
                       3.502, 3.256, 3.010, 2.764, 2.518, 2.313, 2.086, 1.419])
     theta = np.array([13.308, 13.308, 13.308, 13.308, 11.480, 10.162, 9.011, 7.795,
                       6.544, 5.361, 4.188, 3.125, 2.319, 1.526, 0.863, 0.370, 0.106])
 
+    alpha_sweep = np.linspace(-10,80,50)
+
     top = Assembly()
-    top.add('b', BEMComponent())
+    top.add('b', BEMComponent(alpha_sweep, r))
 
     print top
     print top.b

@@ -24,6 +24,9 @@ def alpha_dist2():
 def alpha_dist10():
     return np.array([-10., -4., 0., 6., 8., 10., 12., 14., 45., 60.])
 
+def alpha_dist(nelems):
+    return np.linspace(-10.,80.,nelems)
+
 class blade_opt(Assembly):
 
     nElements = 17  # Number of BEM sections for CCBlade (BEM code by Andrew Ning)
@@ -32,13 +35,17 @@ class blade_opt(Assembly):
     alpha_max = 80
     optimizeChord = False
 
+    r = np.array([2.8667, 5.6000, 8.3333, 11.7500, 15.8500, 19.9500, 24.0500,
+                  28.1500, 32.2500, 36.3500, 40.4500, 44.5500, 48.6500, 52.7500,
+                  56.1667, 58.9000, 61.6333]) 
+
     def __init__(self, fake=False):
         self.fake = fake
         super(blade_opt, self).__init__()
 
     def configure(self):
 
-      self.alpha_sweep = alpha_dist10()
+      self.alpha_sweep = alpha_dist(100)
       self.nSweep      = len(self.alpha_sweep)
 
       # Add components
@@ -46,7 +53,7 @@ class blade_opt(Assembly):
           self.add('su2',SU2_CLCD_Fake(self.alpha_sweep,nDVvals=self.nDVvals))
       else:
           self.add('su2',SU2_CLCD(self.alpha_sweep,nDVvals=self.nDVvals))
-      self.add('bem',BEMComponent(self.alpha_sweep, n_elements=self.nElements))
+      self.add('bem',BEMComponent(self.alpha_sweep, self.r))
 
       # Create driver and add components to its workflow
       self.add('driver',SLSQPdriver())
