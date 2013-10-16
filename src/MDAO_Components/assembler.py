@@ -22,14 +22,16 @@ from SU2.io import Config
 
 class blade_opt_fake(Assembly):
 
-  nSweep = 70
+  nSweep = 10
   nElements = 17
   alpha_min = -10
   alpha_max = 80
   optimizeChord = False
   def configure(self):
-    self.add('su2',SU2_CLCD_Fake(nSweep=self.nSweep))
-    self.add('bem',BEMComponent(n_elements=self.nElements,nSweep=self.nSweep,optChord=self.optimizeChord))
+    alpha_sweep = np.linspace(self.alpha_min, self.alpha_max,self.nSweep)
+
+    self.add('su2',SU2_CLCD_Fake(alpha_sweep))
+    self.add('bem',BEMComponent(alpha_sweep, n_elements=self.nElements,optChord=self.optimizeChord))
     self.add('driver',SLSQPdriver())
     self.driver.workflow.add(['bem','su2'])
 
@@ -39,7 +41,6 @@ class blade_opt_fake(Assembly):
         self.driver.add_parameter('bem.chord[%d]'%i,low=1e-8,high=10,start=1)
     for i in range(self.nSweep):
       self.connect('su2.cls[%d]'%i, 'bem.cls[%d]'%i)
-      self.connect('su2.alphas[%d]'%i, 'bem.alphas[%d]'%i)
       self.connect('su2.cds[%d]'%i, 'bem.cds[%d]'%i)
     self.driver.add_objective('-bem.power')
     self.driver.maxiter = 100000
@@ -53,6 +54,7 @@ class blade_opt(Assembly):
   nSweep    = 10  # Points in each alpha-sweep
   nElements = 17  # Number of BEM sections for CCBlade (BEM code by Andrew Ning)
   nDVvals   = 38  # Number of Hicks-Henne bump functions
+  fake      = True
 
   def configure(self):
 
@@ -76,7 +78,6 @@ class blade_opt(Assembly):
     # Connect outputs from SU^2 wrapper to CCBlade
     for i in range(self.nSweep):
       self.connect('su2.cls[%d]'%i, 'bem.cls[%d]'%i)
-      self.connect('su2.alphas[%d]'%i, 'bem.alphas[%d]'%i)
       self.connect('su2.cds[%d]'%i, 'bem.cds[%d]'%i)
 
     # Objective: minimize negative power

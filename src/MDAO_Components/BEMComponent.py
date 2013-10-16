@@ -23,8 +23,8 @@ class BEMComponent(Component):
     Rtip = 63.
 
     # set conditions
-    Uinf = 10.0
-    tsr = 7.55
+    Uinf  = 10.0
+    tsr   = 7.55
     pitch = 0.0
     Omega = Uinf*tsr/Rtip * 30.0/pi  # convert to RPM
 
@@ -39,17 +39,17 @@ class BEMComponent(Component):
     hubHt = 80.0
     nSector = 8
 
-    def __init__(self, n_elements=17, nSweep=8,optChord=False):
+    def __init__(self, alpha_sweep, n_elements=17, optChord=False):
 
         super(BEMComponent, self).__init__()
-        self.n_elements = n_elements
-        self.nSweep     = nSweep
+        self.n_elements  = n_elements
+        self.alpha_sweep = alpha_sweep
+        self.nSweep      = len(alpha_sweep)
 
         # Inputs
         self.add('theta',  Array(np.zeros([n_elements]), size=[n_elements], iotype="in"))
-        self.add('alphas', Array(np.zeros([nSweep]),     size=[nSweep],     iotype="in"))
-        self.add('cls',    Array(np.zeros([nSweep]),     size=[nSweep],     iotype="in"))
-        self.add('cds',    Array(np.zeros([nSweep]),     size=[nSweep],     iotype="in"))
+        self.add('cls',    Array(np.zeros([self.nSweep]),     size=[self.nSweep],     iotype="in"))
+        self.add('cds',    Array(np.zeros([self.nSweep]),     size=[self.nSweep],     iotype="in"))
 
         if optChord:
             self.add('chord',  Array(np.zeros([n_elements]), size=[n_elements], iotype="in"))
@@ -71,12 +71,10 @@ class BEMComponent(Component):
         for j in range(self.n_elements):
             self.input_keys.append('chord[%d]'%j)
         for j in range(self.nSweep):
-            self.input_keys.append('alphas[%d]'%j)
-        for j in range(self.nSweep):
             self.input_keys.append('cls[%d]'%j)
         for j in range(self.nSweep):
             self.input_keys.append('cds[%d]'%j)
-        self.J = np.zeros([1,2*self.n_elements + 3*self.nSweep])
+        self.J = np.zeros([1,2*self.n_elements + 2*self.nSweep])
 
         self.output_keys = ('power',)
 
@@ -128,7 +126,7 @@ class BEMComponent(Component):
         #print "cds",self.cds
         self.totalEvals += 1
         # Create a CCAirfoil object using the input alpha sweep
-        airfoil = CCAirfoil(self.alphas, [], self.cls, self.cds)
+        airfoil = CCAirfoil(self.alpha_sweep, [], self.cls, self.cds)
         
             
         # Show cl vs. alpha
@@ -151,7 +149,7 @@ class BEMComponent(Component):
 
     def linearize(self):
         '''Compute Jacobian d(outputs)/d(inputs)
-                   theta  chord  (TODO: alphas  cls  cds)
+                   theta  chord  cls  cds
            ------|----------------------------------- 
            power |
         
@@ -160,7 +158,7 @@ class BEMComponent(Component):
         print "Calling linearize"
         
         # Create a CCAirfoil object using the input alpha sweep
-        airfoil = CCAirfoil(self.alphas, [], self.cls, self.cds)
+        airfoil = CCAirfoil(self.alpha_sweep, [], self.cls, self.cds)
         self.af = [0]*self.n_elements
 
         for j in range(self.n_elements):
@@ -180,14 +178,10 @@ class BEMComponent(Component):
         for j in xrange(self.n_elements):
             self.J[0,self.n_elements+j] = self.dP_dv[0, 1, j]
 
-        # Say the derivative wrt. alpha is zero
-        for j in xrange(self.nSweep):
-            self.J[0,self.n_elements*2 + j] = 0
-
         clStepSize = 1e-8
         cdStepSize = 1e-8
 
-        offset = self.n_elements*2 + self.nSweep
+        offset = self.n_elements*2
         #compute finite difference for derivatives wrt cl
         for j in xrange(self.nSweep):
             '''
@@ -201,7 +195,7 @@ class BEMComponent(Component):
             self.J[0, offset + j] = 0
 
 
-        offset = self.n_elements*2 + 2*self.nSweep
+        offset = self.n_elements*2 + self.nSweep
         #compute finite difference for derivatives wrt cl
         for j in xrange(self.nSweep):
             '''

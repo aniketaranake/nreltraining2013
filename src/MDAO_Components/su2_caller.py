@@ -13,15 +13,12 @@ import SU2, SU2.io
 from SU2.io import redirect
 
 class SU2_CLCD_Fake(Component):
-    def __init__(self, nSweep = 10,alpha_min = -60, alpha_max = 60):
+    def __init__(self, alpha_sweep, nDVvals=38):
         super(SU2_CLCD_Fake,self).__init__()
-        self.alpha_min = alpha_min
-        self.alpha_max = alpha_max
-        self.nSweep = nSweep
 
-        self.alpha_sweep = np.linspace(self.alpha_min, self.alpha_max, num=nSweep)
+        self.alpha_sweep = alpha_sweep
+        self.nSweep = len(alpha_sweep)
 
-        self.add('alphas',Array(np.zeros([self.nSweep,]), dtype=np.float,shape=[self.nSweep,],iotype="out"))
         self.add('cls',Array(np.zeros([self.nSweep,]), dtype=np.float,shape=[self.nSweep,],iotype="out"))
         self.add('cds',Array(np.zeros([self.nSweep,]),dtype=np.float, shape=[self.nSweep,],iotype="out"))
 
@@ -34,7 +31,6 @@ class SU2_CLCD_Fake(Component):
 
     def execute(self):
         for i in range(self.nSweep):
-            self.alphas[i] = self.alpha_sweep[i]
             self.cls[i] = self.f_cl(self.alpha_sweep[i])
             self.cds[i] = self.f_cd(self.alpha_sweep[i])
 
@@ -77,17 +73,16 @@ class SU2_CLCD(Assembly):
 
     nSweep    = 10
     nDVvals   = 38
-    alpha_min = -60
-    alpha_max = 60
 
     dv_vals = Array([], iotype="in")
 
-    def __init__(self, nSweep=10, nDVvals=38, alpha_min = -60, alpha_max = 60):
+    def __init__(self, alpha_sweep, nDVvals=38):
         super(SU2_CLCD, self).__init__()
 
         # Store the inputs, we'll need them again
-        self.nSweep  = nSweep
-        self.nDVvals = nDVvals
+        self.alpha_sweep = alpha_sweep
+        self.nSweep      = len(alpha_sweep)
+        self.nDVvals     = nDVvals
 
     def configure(self):
         super(SU2_CLCD, self).configure()
@@ -98,9 +93,6 @@ class SU2_CLCD(Assembly):
 
         # Create a master dv_vals array, which will be connected to every deform object this assembly contains
         self.dv_vals = np.zeros([self.nDVvals])
-
-        # Linear spacing of angle of attacks
-        self.alpha_sweep = np.linspace(self.alpha_min, self.alpha_max, num=nSweep)
 
         # Create nSweep deform and solve objects
         for j in range(self.nSweep):
