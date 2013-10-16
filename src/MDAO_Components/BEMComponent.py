@@ -39,24 +39,45 @@ class BEMComponent(Component):
     hubHt = 80.0
     nSector = 8
 
-    def __init__(self, n_elements=17, nSweep=8):
+    def __init__(self, n_elements=17, nSweep=8,optChord=False):
 
         super(BEMComponent, self).__init__()
-
         self.n_elements = n_elements
         self.nSweep     = nSweep
 
         # Inputs
         self.add('theta',  Array(np.zeros([n_elements]), size=[n_elements], iotype="in"))
-        self.add('chord',  Array(np.zeros([n_elements]), size=[n_elements], iotype="in"))
         self.add('alphas', Array(np.zeros([nSweep]),     size=[nSweep],     iotype="in"))
         self.add('cls',    Array(np.zeros([nSweep]),     size=[nSweep],     iotype="in"))
         self.add('cds',    Array(np.zeros([nSweep]),     size=[nSweep],     iotype="in"))
+
+        if optChord:
+            self.add('chord',  Array(np.zeros([n_elements]), size=[n_elements], iotype="in"))
+        else:
+            if n_elements != 17:
+                error("Must have 17 elements")
+            self.chord = np.array([3.542, 3.854, 4.167, 4.557, 4.652, 4.458, 4.249, 4.007, 3.748,
+                      3.502, 3.256, 3.010, 2.764, 2.518, 2.313, 2.086, 1.419])
 
         # Outputs
         self.add('power', Float(iotype="out"))
         self.nEvalsExecute = 0
         self.totalEvals = 0
+
+        # Set up keys for j
+        self.input_keys = []
+        for j in range(self.n_elements):
+            self.input_keys.append('theta[%d]'%j)
+        for j in range(self.n_elements):
+            self.input_keys.append('chord[%d]'%j)
+        for j in range(self.nSweep):
+            self.input_keys.append('alphas[%d]'%j)
+        for j in range(self.nSweep):
+            self.input_keys.append('cls[%d]'%j)
+        for j in range(self.nSweep):
+            self.input_keys.append('cds[%d]'%j)
+
+        self.output_keys = ('power',)
 
     def load_test_airfoils(self):
         '''Loads the airfoils from Andrew Ning's directory of test airfoils'''
@@ -135,7 +156,7 @@ class BEMComponent(Component):
         
         '''
 
-        #print "Calling linearize"
+        print "Calling linearize"
         
         # Create a CCAirfoil object using the input alpha sweep
         airfoil = CCAirfoil(self.alphas, [], self.cls, self.cds)
@@ -197,24 +218,7 @@ class BEMComponent(Component):
         #print self.J
 
     def provideJ(self):
-
-        input_keys = []
-        for j in range(self.n_elements):
-            input_keys.append('theta[%d]'%j)
-        for j in range(self.n_elements):
-            input_keys.append('chord[%d]'%j)
-        for j in range(self.nSweep):
-            input_keys.append('alphas[%d]'%j)
-        for j in range(self.nSweep):
-            input_keys.append('cls[%d]'%j)
-        for j in range(self.nSweep):
-            input_keys.append('cds[%d]'%j)
-
-        output_keys = ('power',)
-
-
-
-        return input_keys, output_keys, self.J
+        return self.input_keys, self.output_keys, self.J
 
 
 if __name__=="__main__":

@@ -22,20 +22,20 @@ from SU2.io import Config
 
 class blade_opt_fake(Assembly):
 
-  nSweep = 50
+  nSweep = 20
   nElements = 17
   alpha_min = -10
   alpha_max = 80
   optimizeChord = False
   def configure(self):
     self.add('su2',SU2_CLCD_Fake(nSweep=self.nSweep))
-    self.add('bem',BEMComponent(n_elements=self.nElements,nSweep=self.nSweep,optChord=optimizeChord))
+    self.add('bem',BEMComponent(n_elements=self.nElements,nSweep=self.nSweep,optChord=self.optimizeChord))
     self.add('driver',SLSQPdriver())
     self.driver.workflow.add(['bem','su2'])
 
     for i in range(self.nElements):
       self.driver.add_parameter('bem.theta[%d]'%i,low=self.alpha_min,high=self.alpha_max)
-      if optimize_chord:
+      if self.optimizeChord:
         self.driver.add_parameter('bem.chord[%d]'%i,low=1e-8,high=10,start=1)
     for i in range(self.nSweep):
       self.connect('su2.cls[%d]'%i, 'bem.cls[%d]'%i)
@@ -44,7 +44,7 @@ class blade_opt_fake(Assembly):
     self.driver.add_objective('-bem.power')
     self.driver.maxiter = 100000
     self.driver.iprint = 1
-    self.driver.accuracy = 1e-14
+    self.driver.accuracy = 1e-8
     for item in  self.driver.__dict__:
       print item
 
