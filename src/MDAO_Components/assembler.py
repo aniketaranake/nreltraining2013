@@ -40,7 +40,7 @@ class blade_opt_fake(Assembly):
       self.connect('su2.alphas[%d]'%i, 'bem.alphas[%d]'%i)
       self.connect('su2.cds[%d]'%i, 'bem.cds[%d]'%i)
     self.driver.add_objective('-bem.power')
-    self.driver.maxiter = 100000
+    self.driver.maxiter = 10
     for item in  self.driver.__dict__:
       print item
 
@@ -86,6 +86,6 @@ if __name__=="__main__":
   bo.run()
   print bo.driver.error_code
   if bo.driver.error_code != 0:
-    print bo.driver.error_messages[bo.drive.error_code]
+    print "error", bo.driver.error_code,bo.driver.error_messages[bo.driver.error_code]
   #print bo.driver.__dict__
 
