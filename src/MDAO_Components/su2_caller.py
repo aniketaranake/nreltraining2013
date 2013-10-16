@@ -1,6 +1,7 @@
 # Python imports
 import numpy as np
 from scipy.interpolate import interp1d
+from copy import deepcopy
 
 # OpenMDAO imports
 from openmdao.lib.datatypes.api import Float, Int, Array, VarTree, File
@@ -43,7 +44,7 @@ class SolveWithFolder(Solve):
 
     def execute(self):
         if self.folder:
-           pull = ['inv_NACA0012.cfg']
+           pull = ['inv_NACA0012.cfg','config_CFD.cfg','config_DDC.cfg','config_SOL.cfg']
            link = ['mesh_NACA0012_inv.su2'] 
            force = True
            with redirect.folder(self.folder, pull, link, force) as push:
@@ -60,7 +61,7 @@ class DeformWithFolder(Deform):
 
     def execute(self):
         if self.folder:
-           pull = ['inv_NACA0012.cfg']
+           pull = ['inv_NACA0012.cfg','config_CFD.cfg','config_DDC.cfg','config_SOL.cfg']
            link = ['mesh_NACA0012_inv.su2'] 
            force = True
            with redirect.folder(self.folder, pull, link, force) as push:
@@ -71,18 +72,16 @@ class DeformWithFolder(Deform):
 class SU2_CLCD(Assembly):
     '''An assembly with a run-once driver that contains a deform object and a solve object from SU2_wrapper'''
 
-    nSweep    = 10
-    nDVvals   = 38
-
     dv_vals = Array([], iotype="in")
 
     def __init__(self, alpha_sweep, nDVvals=38):
-        super(SU2_CLCD, self).__init__()
 
         # Store the inputs, we'll need them again
         self.alpha_sweep = alpha_sweep
         self.nSweep      = len(alpha_sweep)
         self.nDVvals     = nDVvals
+
+        super(SU2_CLCD, self).__init__()
 
     def configure(self):
         super(SU2_CLCD, self).configure()
@@ -103,7 +102,7 @@ class SU2_CLCD(Assembly):
 
             # Give the deform object our config object
             myConfig.AoA = self.alpha_sweep[j]
-            this_deform.config_in = myConfig
+            this_deform.config_in = deepcopy(myConfig)
 
             # Connect the master dv_vals to the dv_vals of each deform object
             for k in range(self.nDVvals):
@@ -128,15 +127,21 @@ if __name__ == "__main__":
        #print var.cds
     
     else:
-        nSweep = 10
-        model = SU2_CLCD(nSweep=nSweep)
+
+        # Get range of alphas
+        from assembler import alpha_dist2, alpha_dist10
+        alpha_sweep = alpha_dist10()
+
+        # Run assembly
+        model = SU2_CLCD(alpha_sweep)
         model.run()  # Run once
 
         print 'design values:'
         print model.dv_vals
 
+        nSweep = len(alpha_sweep)
         for j in range(nSweep):
-            this_solve = model.getattr(model, 'solve[%d]'%j)
-            print "j, lift, drag:", j, this_solve.LIFT, this_solve.DRAG
+            this_solve = getattr(model, 'solve%d'%j)
+            print "j, alpha, lift, drag:", j, alpha_sweep[j], this_solve.LIFT, this_solve.DRAG
 
         

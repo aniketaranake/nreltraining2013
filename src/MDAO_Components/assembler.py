@@ -18,6 +18,12 @@ from openmdao.lib.casehandlers.api import DumpCaseRecorder
 # SU^2 imports
 from SU2.io import Config
 
+def alpha_dist2():
+    return np.array([-4., 6.])
+
+def alpha_dist10():
+    return np.array([-10., -4., 0., 6., 8., 10., 12., 14., 45., 60.])
+
 class blade_opt(Assembly):
 
     nElements = 17  # Number of BEM sections for CCBlade (BEM code by Andrew Ning)
@@ -32,8 +38,7 @@ class blade_opt(Assembly):
 
     def configure(self):
 
-      # TODO: Improve alpha_sweep
-      self.alpha_sweep = np.linspace(self.alpha_min, self.alpha_max,10)
+      self.alpha_sweep = alpha_dist10()
       self.nSweep      = len(self.alpha_sweep)
 
       # Add components
@@ -60,8 +65,8 @@ class blade_opt(Assembly):
 
       # Connect outputs from SU^2 wrapper to CCBlade
       for i in range(self.nSweep):
-        self.connect('su2.cls[%d]'%i, 'bem.cls[%d]'%i)
-        self.connect('su2.cds[%d]'%i, 'bem.cds[%d]'%i)
+          self.connect('su2.cls[%d]'%i, 'bem.cls[%d]'%i)
+          self.connect('su2.cds[%d]'%i, 'bem.cds[%d]'%i)
 
       # Objective: minimize negative power
       self.driver.add_objective('-bem.power')
