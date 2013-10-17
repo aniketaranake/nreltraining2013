@@ -132,7 +132,7 @@ class BEMComponent(Component):
         power, thrust, torque, blade = self.CallCCBlade()
 
         self.nEvalsExecute += 1
-        #print "Calling execute ", "nExecute", self.nEvalsExecute, "nEvals",self.totalEvals
+        print "Calling execute ", "nExecute", self.nEvalsExecute, "nEvals",self.totalEvals
         #print "theta", self.theta
         #print blade.alpha
         #print "power", power[0]
@@ -225,21 +225,21 @@ class BEMComponent(Component):
         offset = self.n_elements*2
         #compute finite difference for derivatives wrt cl
         for j in xrange(self.nSweep):
-            '''
+            
             self.cls[j] += clStepSize
             power1, thrust1, torque1 = self.CallCCBlade()
             self.cls[j] -= 2*clStepSize
             power2, thrust2, torque2 = self.CallCCBlade()
             self.cls[j] += clStepSize
             self.J[0, offset + j] = (power1 -power2) / (2 * clStepSize)
-            '''
-            self.J[0, offset + j] = 0
+            
+            #self.J[0, offset + j] = 0
 
 
         offset = self.n_elements*2 + self.nSweep
         #compute finite difference for derivatives wrt cl
         for j in xrange(self.nSweep):
-            '''
+            
             power0, thrust0, torque0 = self.CallCCBlade()
             self.cds[j] += cdStepSize
             power1, thrust1, torque1 = self.CallCCBlade()
@@ -247,8 +247,8 @@ class BEMComponent(Component):
             power2, thrust2, torque2 = self.CallCCBlade()
             self.cds[j] -= 2* clStepSize
             self.J[0, offset + j] = (-3*power0 + 4*power1 - power2) / (2* cdStepSize)
-            '''
-            self.J[0, offset + j] = 0.1
+            
+            #self.J[0, offset + j] = 0.1
 
         print "J:"
         for j,key in enumerate(self.input_keys):
