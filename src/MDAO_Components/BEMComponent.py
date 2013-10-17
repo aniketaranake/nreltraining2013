@@ -6,6 +6,8 @@ import pylab as py
 
 from openmdao.main.api import Component, Assembly, VariableTree
 from openmdao.lib.datatypes.api import Float, Int, Array, VarTree
+from openmdao.lib.drivers.api import SLSQPdriver
+from openmdao.lib.casehandlers.api import DumpCaseRecorder
 
 import sys
 sys.path.append('../CCblade/src/')
@@ -77,9 +79,9 @@ class BEMComponent(Component):
 
         # Load the du25_A17 airfoil data, which will be used for alphas where SU^2 is invalid
         self.du25data   = np.loadtxt('du25.dat')
-        alpha_list = self.du25data[:,0]
-        cl_list    = self.du25data[:,1]
-        cd_list    = self.du25data[:,2]
+        alpha_list      = self.du25data[:,0]
+        cl_list         = self.du25data[:,1]
+        cd_list         = self.du25data[:,2]
 
         # Store the data outside of the alpha range SU^2 will be providing
         j_pre  = alpha_list < self.alpha_sweep[0]
@@ -264,20 +266,33 @@ class BEMAssembly(Assembly):
 
     def configure():
 
+        self.nSweep     = len(self.alpha_sweep)
+        self.n_elements = len(self.r)
+
         # Inputs
-        self.add('theta',  Array(np.zeros([self.n_elements]), size=[self.n_elements], iotype="in"))
         self.add('cls',    Array(np.zeros([self.nSweep]),     size=[self.nSweep],     iotype="in"))
         self.add('cds',    Array(np.zeros([self.nSweep]),     size=[self.nSweep],     iotype="in"))
 
         # Outputs
         self.add('power', Float(iotype="out"))
 
-        # TODO: Set up slsqp here
-        
+        # Add the one component
+        self.add('bem_component', BEMComponent(self.alpha_sweep, self.r))
+
+        # Set up the SLSQP driver
+        self.add('driver', SLSQPdriver())
+        self.driver.workflow.add('bem_component')
+        for j in range(self.n_elements)
+            self.driver.add_parameter('bem_component.theta[%d]'%j)
+
+        # Connect ins and outs
+        for j in range(self.nSweep):
+            self.connect('cls[%d]'%j, 'bem_component.cls[%d]'%j)
+            self.connect('cds[%d]'%j, 'bem_component.cds[%d]'%j)
+        self.connect('bem_component.power','power')
 
 
 if __name__=="__main__":
-
 
     # Andrew's test case
     n_elems = 17
@@ -296,10 +311,6 @@ if __name__=="__main__":
 
     top = Assembly()
     top.add('b', BEMComponent(alpha_sweep, r))
-
-    for j in range(len(alpha_sweep)):
-        top.b.cls[j] = j
-        top.b.cds[j] = -j
 
     print top
     print top.b
