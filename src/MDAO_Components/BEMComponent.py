@@ -122,6 +122,7 @@ class BEMComponent(Component):
 
     def execute(self):
 
+        print "Component execute!"
         # Constructor of CCBlade -------------------------------------------------------------------------------------------
         #    def __init__(self, r, chord, theta, af, Rhub, Rtip, B=3, rho=1.225, mu=1.81206e-5,
         #                 precone=0.0, tilt=0.0, yaw=0.0, shearExp=0.2, hubHt=80.0,
@@ -155,6 +156,7 @@ class BEMComponent(Component):
                         self.B, self.rho, self.mu, self.precone, self.tilt, self.yaw, self.shearExp, self.hubHt, self.nSector)
 
         power, thrust, torque =  blade.evaluate([self.Uinf], [self.Omega], [self.pitch])
+        print "Power from blade.evaluate(): ", power
 
         return power, thrust, torque, blade
 
@@ -295,7 +297,7 @@ class BEMAssembly(Assembly):
         self.connect('bem_component.power','power')
 
         # Objective for optimization
-        self.driver.add_objective('-power')
+        self.driver.add_objective('-bem_component.power')
 
 
 if __name__=="__main__":
