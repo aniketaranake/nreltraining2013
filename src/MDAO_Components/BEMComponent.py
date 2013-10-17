@@ -2,6 +2,7 @@
 
 from math import pi, cos, sin, tan
 import numpy as np
+import pylab as py
 
 from openmdao.main.api import Component, Assembly, VariableTree
 from openmdao.lib.datatypes.api import Float, Int, Array, VarTree
@@ -74,6 +75,22 @@ class BEMComponent(Component):
 
         self.output_keys = ('power',)
 
+        # Load the du25_A17 airfoil data, which will be used for alphas where SU^2 is invalid
+        self.du25data   = np.loadtxt('du25.dat')
+        alpha_list = self.du25data[:,0]
+        cl_list    = self.du25data[:,1]
+        cd_list    = self.du25data[:,2]
+
+        # Store the data outside of the alpha range SU^2 will be providing
+        j_pre  = alpha_list < self.alpha_sweep[0]
+        self.alpha_pre = alpha_list[j_pre]
+        self.cl_pre    = cl_list[j_pre]
+        self.cd_pre    = cd_list[j_pre]
+        j_post = alpha_list > self.alpha_sweep[-1]
+        self.alpha_post = alpha_list[j_post]
+        self.cl_post    = cl_list[j_post]
+        self.cd_post    = cd_list[j_post]
+
     def load_test_airfoils(self):
         '''Loads the airfoils from Andrew Ning's directory of test airfoils'''
         # Path for output files
@@ -141,8 +158,23 @@ class BEMComponent(Component):
 
     def generate_af(self):
 
+        alpha_list = []
+        cl_list    = []
+        cd_list    = []
+        alpha_list.extend(self.alpha_pre)
+        alpha_list.extend(self.alpha_sweep)
+        alpha_list.extend(self.alpha_post)
+
+        cl_list.extend(self.cl_pre)
+        cl_list.extend(self.cls)
+        cl_list.extend(self.cl_post)
+
+        cd_list.extend(self.cd_pre)
+        cd_list.extend(self.cds)
+        cd_list.extend(self.cd_post)
+                    
         # Create a CCAirfoil object using the input alpha sweep
-        su2_airfoil = CCAirfoil(self.alpha_sweep, [], self.cls, self.cds)
+        su2_airfoil = CCAirfoil(alpha_list, [], cl_list, cd_list)
 
         # load cylinder files
         afinit = CCAirfoil.initFromAerodynFile  # just for shorthand
@@ -237,10 +269,15 @@ if __name__=="__main__":
     theta = np.array([13.308, 13.308, 13.308, 13.308, 11.480, 10.162, 9.011, 7.795,
                       6.544, 5.361, 4.188, 3.125, 2.319, 1.526, 0.863, 0.370, 0.106])
 
-    alpha_sweep = np.linspace(-10,80,50)
+    #alpha_sweep = np.linspace(-10,80,50)
+    alpha_sweep = np.array(range(-30,10))
 
     top = Assembly()
     top.add('b', BEMComponent(alpha_sweep, r))
+
+    for j in range(len(alpha_sweep)):
+        top.b.cls[j] = j
+        top.b.cds[j] = -j
 
     print top
     print top.b

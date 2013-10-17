@@ -25,10 +25,7 @@ def alpha_dist10():
     return np.array([-10., -4., 0., 6., 8., 10., 12., 14., 45., 60.])
 
 def alpha_dist(nelems):
-    return np.linspace(-10.,80.,nelems)
-
-def alpha_orig_sweep():
-    return np.array([0, 2, -2, 4, -6, 8, -8, 10, -10, 12, 14, 1, -1, 3, -3, 5, -5, 7, -7, 9, -9, 11, -11, -12, 13, -13, -14, 15, -15])
+    return np.array(range(-12,16,3))
 
 class blade_opt(Assembly):
 

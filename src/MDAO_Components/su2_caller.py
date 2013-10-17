@@ -14,9 +14,11 @@ import SU2, SU2.io
 from SU2.io import redirect
 
 cfgfilename = 'turb_SA_RAE2822.cfg'
+
 # Global lists related to with.redirect in SolveWithFolder and DeformWithFolder
-pull = [cfgfilename,'config_CFD.cfg','config_DDC.cfg','config_SOL.cfg']
-link = ['mesh_RAE2822_turb.su2'] 
+pull  = [cfgfilename,'config_CFD.cfg','config_DDC.cfg','config_SOL.cfg']
+link  = ['mesh_RAE2822_turb.su2'] 
+force = False
 
 class SU2_CLCD_Fake(Component):
     def __init__(self, alpha_sweep, nDVvals=38):
@@ -49,11 +51,17 @@ class SolveWithFolder(Solve):
 
     def execute(self):
         if self.folder:
-           force = True
            with redirect.folder(self.folder, pull, link, force) as push:
               super(SolveWithFolder,self).execute()
         else:
             super(SolveWithFolder,self).execute()
+
+    def linearize(self):
+        if self.folder:
+           with redirect.folder(self.folder, pull, link, force) as push:
+              super(SolveWithFolder,self).linearize()
+        else:
+            super(SolveWithFolder,self).linearize()
 
 class DeformWithFolder(Deform):
 
@@ -64,11 +72,17 @@ class DeformWithFolder(Deform):
 
     def execute(self):
         if self.folder:
-           force = True
            with redirect.folder(self.folder, pull, link, force) as push:
               super(DeformWithFolder,self).execute()
         else:
             super(DeformWithFolder,self).execute()
+
+    def linearize(self):
+        if self.folder:
+           with redirect.folder(self.folder, pull, link, force) as push:
+              super(DeformWithFolder,self).linearize()
+        else:
+            super(DeformWithFolder,self).linearize()
 
 class SU2_CLCD(Assembly):
     '''An assembly with a run-once driver that contains a deform object and a solve object from SU2_wrapper'''
