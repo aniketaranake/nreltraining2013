@@ -39,58 +39,66 @@ class blade_opt(Assembly):
                   28.1500, 32.2500, 36.3500, 40.4500, 44.5500, 48.6500, 52.7500,
                   56.1667, 58.9000, 61.6333]) 
 
-    def __init__(self, fake=False):
+    def __init__(self, fake=False, russianDolls=True):
         self.fake = fake
         super(blade_opt, self).__init__()
 
     def configure(self):
 
-      self.alpha_sweep = alpha_dist()
-      self.nSweep      = len(self.alpha_sweep)
+        self.alpha_sweep = alpha_dist()
+        self.nSweep      = len(self.alpha_sweep)
 
-      # Add components
-      if self.fake:
-          self.add('su2',SU2_CLCD_Fake(self.alpha_sweep,nDVvals=self.nDVvals))
-      else:
-          self.add('su2',SU2_CLCD(self.alpha_sweep,nDVvals=self.nDVvals))
-      self.add('bem',BEMComponent(self.alpha_sweep, self.r))
 
-      # Create driver and add components to its workflow
-      self.add('driver',SLSQPdriver())
-      self.driver.workflow.add(['bem','su2'])
+    # Add SU2 Component
+    if self.fake:
+        self.add('su2',SU2_CLCD_Fake(self.alpha_sweep,nDVvals=self.nDVvals))
+    else:
+        self.add('su2',SU2_CLCD(self.alpha_sweep,nDVvals=self.nDVvals))        
 
-      # Design parameters for CCBlade 
-      for i in range(self.nElements):
-        self.driver.add_parameter('bem.theta[%d]'%i,low=-80,high=80)
-        if self.optimizeChord:
-            self.driver.add_parameter('bem.chord[%d]'%i,low=1e-8,high=10,start=1)
+    # We are doing russian dolls, so the outer parameters are just the dvvals
+    if russianDolls:
+        # Add BEM Assembly (optimizes for theta given airfoil)
+        self.add('bem',BEMAssembly(self.alpha_sweep, self.r, optChord=self.optimizeChord))
+    else:
+        # Otherwise we just add the BEMComponent
+        self.add('bem',BEMComponent(self.alpha_sweep, self.r, optChord=self.optimizeChord))
 
-      # Design parameters for SU^2
-      if not self.fake:
-          for i in range(self.nDVvals):
+    # Create driver and add components to its workflow
+    # Need to have something about if it's fake and russian dolls
+    if not (self.fake and russianDolls):
+        self.add('driver',SLSQPdriver())
+        self.driver.workflow.add(['bem','su2'])   
+        # Objective: minimize negative power
+        self.driver.add_objective('-bem.power') 
+
+    # Add Hicks-Henne bump function parameters
+    if not self.fake:
+        for i in range(self.nDVvals):
             self.driver.add_parameter('su2.dv_vals[%d]' % i, low=-.05, high=.05)
 
-      # Connect outputs from SU^2 wrapper to CCBlade
-      for i in range(self.nSweep):
-          self.connect('su2.cls[%d]'%i, 'bem.cls[%d]'%i)
-          self.connect('su2.cds[%d]'%i, 'bem.cds[%d]'%i)
+    if russianDolls:
+        pass
+    else:
+        # If not nested, we want to add the theta (and maybe chord)
+        for i in range(self.nElements):
+            self.driver.add_parameter('bem.theta[%d]'%i,low=-80,high=80)
+            if self.optimizeChord:
+                self.driver.add_parameter('bem.chord[%d]'%i,low=1e-8,high=10,start=1)
+    # Connect outputs from SU^2 wrapper to CCBlade
+    for i in range(self.nSweep):
+        self.connect('su2.cls[%d]'%i, 'bem.cls[%d]'%i)
+        self.connect('su2.cds[%d]'%i, 'bem.cds[%d]'%i)
 
-      # Objective: minimize negative power
-      self.driver.add_objective('-bem.power')
+    # Specify max iterations
+    self.driver.maxiter = 1000
 
-      # Specify max iterations
-      self.driver.maxiter = 1000
-
-      # Some additional driver parameters
-      self.driver.maxiter = 100000
-      self.driver.iprint = 1
-      self.driver.accuracy = 1e-8
-      for item in  self.driver.__dict__:
-          print item
+    # Some additional driver parameters
+    self.driver.maxiter = 100000
+    self.driver.iprint = 1
+    self.driver.accuracy = 1e-8
 
 if __name__=="__main__":
-
-    bo = blade_opt(fake=False)
+    bo = blade_opt(fake=False, russianDolls=True)
     bo.run()
     print "Recoder dictionary"
     for item in bo.driver.recorders.__dict__:
@@ -98,5 +106,5 @@ if __name__=="__main__":
     print bo.driver.error_code
     if bo.driver.error_code != 0:
         print "optimization error:", bo.driver.error_code,": ",bo.driver.error_messages[bo.driver.error_code]
-    #print bo.driver.__dict__
+      #print bo.driver.__dict__
 
