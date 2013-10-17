@@ -227,9 +227,9 @@ class BEMComponent(Component):
         for j in xrange(self.nSweep):
             
             self.cls[j] += clStepSize
-            power1, thrust1, torque1 = self.CallCCBlade()
+            power1, thrust1, torque1, blade1 = self.CallCCBlade()
             self.cls[j] -= 2*clStepSize
-            power2, thrust2, torque2 = self.CallCCBlade()
+            power2, thrust2, torque2, blade2 = self.CallCCBlade()
             self.cls[j] += clStepSize
             self.J[0, offset + j] = (power1 -power2) / (2 * clStepSize)
             
@@ -240,11 +240,11 @@ class BEMComponent(Component):
         #compute finite difference for derivatives wrt cl
         for j in xrange(self.nSweep):
             
-            power0, thrust0, torque0 = self.CallCCBlade()
+            power0, thrust0, torque0, blade0 = self.CallCCBlade()
             self.cds[j] += cdStepSize
-            power1, thrust1, torque1 = self.CallCCBlade()
+            power1, thrust1, torque1, blade1 = self.CallCCBlade()
             self.cds[j] += cdStepSize
-            power2, thrust2, torque2 = self.CallCCBlade()
+            power2, thrust2, torque2, blade2 = self.CallCCBlade()
             self.cds[j] -= 2* clStepSize
             self.J[0, offset + j] = (-3*power0 + 4*power1 - power2) / (2* cdStepSize)
             
