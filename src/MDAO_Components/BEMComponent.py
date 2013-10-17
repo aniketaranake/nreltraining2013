@@ -328,7 +328,8 @@ if __name__=="__main__":
 
     # top.driver.workflow.add('b')
     # top.run()
-    print "error code: ",top.driver.error_code, "error message: ", top.driver.error_messages
+    if top.driver.error_code != 0:
+        print "error code: ",top.driver.error_code, "error message: ", top.driver.error_messages[top.driver.error_code]
     print
     print "power: ", top.power
     print "theta: ", top.bem_component.theta
