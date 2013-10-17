@@ -104,6 +104,7 @@ class SU2_CLCD(Assembly):
 
 
     def configure(self):
+        print "start su2_caller configure"
         super(SU2_CLCD, self).configure()
 
         # Open a config file 
@@ -138,7 +139,7 @@ class SU2_CLCD(Assembly):
 
             # Add these objects to the workflow
             self.driver.workflow.add(['deform%d'%j,'solve%d'%j])
-
+        print "done su2_caller configure"
 if __name__ == "__main__":
 
     do_fake = False

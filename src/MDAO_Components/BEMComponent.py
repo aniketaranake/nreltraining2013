@@ -133,7 +133,7 @@ class BEMComponent(Component):
         power, thrust, torque, blade = self.CallCCBlade()
 
         self.nEvalsExecute += 1
-        print "Calling execute ", "nExecute", self.nEvalsExecute, "nEvals",self.totalEvals
+        #print "Calling execute ", "nExecute", self.nEvalsExecute, "nEvals",self.totalEvals
         #print "theta", self.theta
         #print blade.alpha
         #print "power", power[0]
@@ -156,7 +156,7 @@ class BEMComponent(Component):
                         self.B, self.rho, self.mu, self.precone, self.tilt, self.yaw, self.shearExp, self.hubHt, self.nSector)
 
         power, thrust, torque =  blade.evaluate([self.Uinf], [self.Omega], [self.pitch])
-        print "Power from blade.evaluate(): ", power
+        #print "Power from blade.evaluate(): ", power
 
         return power, thrust, torque, blade
 
@@ -252,9 +252,9 @@ class BEMComponent(Component):
             
             #self.J[0, offset + j] = 0.1
 
-        print "J:"
-        for j,key in enumerate(self.input_keys):
-            print self.input_keys[j], ":", self.J[0,j]
+        #print "J:"
+        #for j,key in enumerate(self.input_keys):
+        #    print self.input_keys[j], ":", self.J[0,j]
 
     def provideJ(self):
         return self.input_keys, self.output_keys, self.J

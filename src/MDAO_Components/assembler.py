@@ -98,15 +98,15 @@ class blade_opt(Assembly):
 
         # Some additional driver parameters
         self.driver.maxiter = 100000
-        self.driver.iprint = 1
+        self.driver.iprint = 3
         self.driver.accuracy = 1e-8
 
 if __name__=="__main__":
-    bo = blade_opt(fake=True, russianDolls=False)
+    bo = blade_opt(fake=False, russianDolls=True)
     bo.run()
     print "Recoder dictionary"
     for item in bo.driver.recorders.__dict__:
         print "\n", item
-    print bo.driver.error_code
+    #print bo.driver.error_code
       #print bo.driver.__dict__
 
