@@ -257,14 +257,14 @@ class BEMComponent(Component):
 
 
 class BEMAssembly(Assembly):
-  '''A class with just one BEMComponent, to optimize the BEM portion independently of SU^2'''
+    '''A class with just one BEMComponent, to optimize the BEM portion independently of SU^2'''
 
     def __init__(self, alpha_sweep, r, optChord=False):
         self.alpha_sweep = alpha_sweep
         self.r           = r
         super(BEMAssembly, self).__init__()
 
-    def configure():
+    def configure(self):
 
         self.nSweep     = len(self.alpha_sweep)
         self.n_elements = len(self.r)
@@ -282,14 +282,17 @@ class BEMAssembly(Assembly):
         # Set up the SLSQP driver
         self.add('driver', SLSQPdriver())
         self.driver.workflow.add('bem_component')
-        for j in range(self.n_elements)
-            self.driver.add_parameter('bem_component.theta[%d]'%j)
+        for j in range(self.n_elements):
+            self.driver.add_parameter('bem_component.theta[%d]'%j, high=10, low=0.0, start=4)
 
         # Connect ins and outs
         for j in range(self.nSweep):
             self.connect('cls[%d]'%j, 'bem_component.cls[%d]'%j)
             self.connect('cds[%d]'%j, 'bem_component.cds[%d]'%j)
         self.connect('bem_component.power','power')
+
+        # Objective for optimization
+        self.driver.add_objective('-power')
 
 
 if __name__=="__main__":
@@ -309,18 +312,21 @@ if __name__=="__main__":
     #alpha_sweep = np.linspace(-10,80,50)
     alpha_sweep = np.array(range(-30,10))
 
-    top = Assembly()
-    top.add('b', BEMComponent(alpha_sweep, r))
+    # top = Assembly()
+    # top.add('b', BEMComponent(alpha_sweep, r))
+    top = BEMAssembly(alpha_sweep, r)
+    top.run()
 
     print top
-    print top.b
+    print top.bem_component
 
-    for j in range(n_elems):
-      top.b.chord[j] = chord[j]
-      top.b.theta[j] = theta[j]
+    # for j in range(n_elems):
+    #   top.b.chord[j] = chord[j]
+    #   top.b.theta[j] = theta[j]
 
-    top.driver.workflow.add('b')
-    top.run()
+    # top.driver.workflow.add('b')
+    # top.run()
     print
-    print "power: ", top.b.power
+    print "power: ", top.power
+    print "theta: ", top.bem_component.theta
 
