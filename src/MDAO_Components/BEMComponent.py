@@ -250,7 +250,7 @@ class BEMComponent(Component):
             '''
             self.J[0, offset + j] = 0
 
-        #print self.J
+        print self.J
 
     def provideJ(self):
         return self.input_keys, self.output_keys, self.J
@@ -310,23 +310,22 @@ if __name__=="__main__":
                       6.544, 5.361, 4.188, 3.125, 2.319, 1.526, 0.863, 0.370, 0.106])
 
     #alpha_sweep = np.linspace(-10,80,50)
-    alpha_sweep = np.array(range(-30,10))
+    alpha_sweep = np.array([-90,-30, -20, -15, -13, 0., 13., 15, 20, 30,90])
+    cl_data    = np.array([0,-1.1,-.7, -.8, -1.3,0, 1.3, .8, .7, 1.1,0])
+    cd_data    = np.array([5,1.,0.6,0.3, 1e-2, 0., 1e-2, 0.3, 0.6, 1.,5]) + 1e-5
 
-    # top = Assembly()
-    # top.add('b', BEMComponent(alpha_sweep, r))
     top = BEMAssembly(alpha_sweep, r)
+
+    for j in range(len(alpha_sweep)):
+        top.cls[j] = cl_data[j]
+        top.cds[j] = cd_data[j]
+
     top.run()
 
     print top
     print top.bem_component
     print top.driver
 
-    # for j in range(n_elems):
-    #   top.b.chord[j] = chord[j]
-    #   top.b.theta[j] = theta[j]
-
-    # top.driver.workflow.add('b')
-    # top.run()
     print
     print "power: ", top.power
     print "theta: ", top.bem_component.theta
