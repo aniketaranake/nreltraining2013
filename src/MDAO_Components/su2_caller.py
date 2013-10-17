@@ -66,13 +66,13 @@ class SolveWithFolder(Solve):
 
 class DeformWithFolder(Deform):
 
-    def __init__(self, folder=None):
+    def __init__(self, folder=None, alpha=None):
 
         self.folder = folder
 
         os.system('rm -rf %s'%folder)
         os.system('mkdir %s'%folder)
-        os.system('ln -s ../restart_files/sol%03d/restart_flow.dat ./solution_flow.dat'%alpha
+        os.system('ln -s ../restart_files/sol%03d/restart_flow.dat %s/solution_flow.dat'%(alpha,folder))
 
         super(DeformWithFolder,self).__init__()
 
@@ -112,6 +112,10 @@ class SU2_CLCD(Assembly):
 
         # Create a master dv_vals array, which will be connected to every deform object this assembly contains
         self.add('dv_vals', Array(np.zeros([self.nDVvals]),size=[self.nDVvals],iotype="in"))
+
+        # Output arrays for Cl, Cd
+        self.add('cls',Array(np.zeros([self.nSweep,]), dtype=np.float,shape=[self.nSweep,],iotype="out"))
+        self.add('cds',Array(np.zeros([self.nSweep,]),dtype=np.float, shape=[self.nSweep,],iotype="out"))
 
         # Create nSweep deform and solve objects
         for j in range(self.nSweep):

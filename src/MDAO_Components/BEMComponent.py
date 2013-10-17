@@ -254,6 +254,28 @@ class BEMComponent(Component):
         return self.input_keys, self.output_keys, self.J
 
 
+class BEMAssembly(Assembly):
+  '''A class with just one BEMComponent, to optimize the BEM portion independently of SU^2'''
+
+    def __init__(self, alpha_sweep, r, optChord=False):
+        self.alpha_sweep = alpha_sweep
+        self.r           = r
+        super(BEMAssembly, self).__init__()
+
+    def configure():
+
+        # Inputs
+        self.add('theta',  Array(np.zeros([self.n_elements]), size=[self.n_elements], iotype="in"))
+        self.add('cls',    Array(np.zeros([self.nSweep]),     size=[self.nSweep],     iotype="in"))
+        self.add('cds',    Array(np.zeros([self.nSweep]),     size=[self.nSweep],     iotype="in"))
+
+        # Outputs
+        self.add('power', Float(iotype="out"))
+
+        # TODO: Set up slsqp here
+        
+
+
 if __name__=="__main__":
 
 
@@ -290,3 +312,4 @@ if __name__=="__main__":
     top.run()
     print
     print "power: ", top.b.power
+

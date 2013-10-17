@@ -4,7 +4,7 @@ import numpy as np
 
 # Imports for our model
 from BEMComponent import BEMComponent
-from su2_caller import SU2_CLCD_Fake
+from su2_caller import SU2_CLCD_Fake, SU2_CLCD
 
 # OpenMDAO imports
 from openmdao.main.api import Component, Assembly, VariableTree
@@ -24,7 +24,7 @@ def alpha_dist2():
 def alpha_dist10():
     return np.array([-10., -4., 0., 6., 8., 10., 12., 14., 45., 60.])
 
-def alpha_dist(nelems):
+def alpha_dist():
     return np.array(range(-12,16,3))
 
 class blade_opt(Assembly):
@@ -45,7 +45,7 @@ class blade_opt(Assembly):
 
     def configure(self):
 
-      self.alpha_sweep = alpha_dist(100)
+      self.alpha_sweep = alpha_dist()
       self.nSweep      = len(self.alpha_sweep)
 
       # Add components
@@ -89,7 +89,8 @@ class blade_opt(Assembly):
           print item
 
 if __name__=="__main__":
-    bo = blade_opt(fake=True)
+
+    bo = blade_opt(fake=False)
     bo.run()
     print "Recoder dictionary"
     for item in bo.driver.recorders.__dict__:
