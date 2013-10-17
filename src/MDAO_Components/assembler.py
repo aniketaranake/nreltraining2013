@@ -46,6 +46,8 @@ class blade_opt(Assembly):
 
     def configure(self):
 
+        print "In blade_opt configure"
+
         self.alpha_sweep = alpha_dist()
         self.nSweep      = len(self.alpha_sweep)
 
@@ -72,6 +74,9 @@ class blade_opt(Assembly):
             self.driver.workflow.add(['bem','su2'])   
             # Objective: minimize negative power
             self.driver.add_objective('-bem.power') 
+        else:
+            print "driver not added"
+
 
         # Add Hicks-Henne bump function parameters
         if not self.fake:
@@ -97,7 +102,7 @@ class blade_opt(Assembly):
         self.driver.accuracy = 1e-8
 
 if __name__=="__main__":
-    bo = blade_opt(fake=True, russianDolls=True)
+    bo = blade_opt(fake=True, russianDolls=False)
     bo.run()
     print "Recoder dictionary"
     for item in bo.driver.recorders.__dict__:
