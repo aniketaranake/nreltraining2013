@@ -6,7 +6,7 @@ import pylab as py
 
 from openmdao.main.api import Component, Assembly, VariableTree
 from openmdao.lib.datatypes.api import Float, Int, Array, VarTree
-from openmdao.lib.drivers.api import SLSQPdriver
+from openmdao.lib.drivers.api import SLSQPdriver, CONMINdriver, COBYLAdriver
 from openmdao.lib.casehandlers.api import DumpCaseRecorder
 
 import sys
@@ -233,7 +233,7 @@ class BEMComponent(Component):
             self.cls[j] += clStepSize
             self.J[0, offset + j] = (power1 -power2) / (2 * clStepSize)
             '''
-            self.J[0, offset + j] = 0
+            self.J[0, offset + j] = -0.1
 
 
         offset = self.n_elements*2 + self.nSweep
@@ -283,8 +283,8 @@ class BEMAssembly(Assembly):
 
         # Set up the SLSQP driver
         self.driver.workflow.add('bem_component')
-        self.add('driver', SLSQPdriver())
-        self.driver.iprint = 1
+        self.add('driver', CONMINdriver())
+        self.driver.iprint = 3
         for j in range(self.n_elements):
             self.driver.add_parameter('bem_component.theta[%d]'%j, high=10, low=0.0, start=4)
 
