@@ -282,6 +282,7 @@ class BEMAssembly(Assembly):
         # Set up the SLSQP driver
         self.add('driver', SLSQPdriver())
         self.driver.workflow.add('bem_component')
+        self.driver.iprint = 1
         for j in range(self.n_elements):
             self.driver.add_parameter('bem_component.theta[%d]'%j, high=10, low=0.0, start=4)
 
@@ -327,6 +328,7 @@ if __name__=="__main__":
 
     # top.driver.workflow.add('b')
     # top.run()
+    print "error code: ",top.driver.error_code
     print
     print "power: ", top.power
     print "theta: ", top.bem_component.theta
