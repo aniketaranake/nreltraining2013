@@ -319,6 +319,7 @@ if __name__=="__main__":
 
     print top
     print top.bem_component
+    print top.driver
 
     # for j in range(n_elems):
     #   top.b.chord[j] = chord[j]
