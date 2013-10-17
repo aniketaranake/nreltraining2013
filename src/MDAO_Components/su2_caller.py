@@ -73,8 +73,6 @@ class DeformWithFolder(Deform):
 class SU2_CLCD(Assembly):
     '''An assembly with a run-once driver that contains a deform object and a solve object from SU2_wrapper'''
 
-    dv_vals = Array([], iotype="in")
-
     def __init__(self, alpha_sweep, nDVvals=38):
 
         # Store the inputs, we'll need them again
@@ -84,6 +82,7 @@ class SU2_CLCD(Assembly):
 
         super(SU2_CLCD, self).__init__()
 
+
     def configure(self):
         super(SU2_CLCD, self).configure()
 
@@ -92,7 +91,7 @@ class SU2_CLCD(Assembly):
         myConfig.read(cfgfilename) 
 
         # Create a master dv_vals array, which will be connected to every deform object this assembly contains
-        self.dv_vals = np.zeros([self.nDVvals])
+        self.add('dv_vals', Array(np.zeros([self.nDVvals]),size=[self.nDVvals],iotype="in"))
 
         # Create nSweep deform and solve objects
         for j in range(self.nSweep):
@@ -136,6 +135,11 @@ if __name__ == "__main__":
 
         # Run assembly
         model = SU2_CLCD(alpha_sweep)
+
+        #for j in range(38):
+        #    model.dv_vals[j]= 0.01*(38.-j)/38
+        #    print model.dv_vals[j]
+
         model.run()  # Run once
 
         print 'design values:'

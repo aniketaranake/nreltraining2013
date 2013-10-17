@@ -110,11 +110,12 @@ class BEMComponent(Component):
         #                 tiploss=True, hubloss=True, wakerotation=True, usecd=True, iterRe=1, derivatives=False):
         #-------------------------------------------------------------------------------------------------------------------
 
-        power, thrust, torque = self.CallCCBlade()
+        power, thrust, torque, blade = self.CallCCBlade()
 
         self.nEvalsExecute += 1
         #print "Calling execute ", "nExecute", self.nEvalsExecute, "nEvals",self.totalEvals
         #print "theta", self.theta
+        #print blade.alpha
         #print "power", power[0]
         self.power = power[0]
 
@@ -134,7 +135,9 @@ class BEMComponent(Component):
         blade = CCBlade(self.r, self.chord, self.theta, af, self.Rhub, self.Rtip,
                         self.B, self.rho, self.mu, self.precone, self.tilt, self.yaw, self.shearExp, self.hubHt, self.nSector)
 
-        return blade.evaluate([self.Uinf], [self.Omega], [self.pitch]) 
+        power, thrust, torque =  blade.evaluate([self.Uinf], [self.Omega], [self.pitch])
+
+        return power, thrust, torque, blade
 
     def generate_af(self):
 
