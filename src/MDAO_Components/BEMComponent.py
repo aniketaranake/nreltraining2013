@@ -248,9 +248,11 @@ class BEMComponent(Component):
             self.cds[j] -= 2* clStepSize
             self.J[0, offset + j] = (-3*power0 + 4*power1 - power2) / (2* cdStepSize)
             '''
-            self.J[0, offset + j] = 0
+            self.J[0, offset + j] = 0.1
 
-        print self.J
+        print "J:"
+        for j,key in enumerate(self.input_keys):
+            print self.input_keys[j], ":", self.J[0,j]
 
     def provideJ(self):
         return self.input_keys, self.output_keys, self.J
@@ -280,8 +282,8 @@ class BEMAssembly(Assembly):
         self.add('bem_component', BEMComponent(self.alpha_sweep, self.r))
 
         # Set up the SLSQP driver
-        self.add('driver', SLSQPdriver())
         self.driver.workflow.add('bem_component')
+        self.add('driver', SLSQPdriver())
         self.driver.iprint = 1
         for j in range(self.n_elements):
             self.driver.add_parameter('bem_component.theta[%d]'%j, high=10, low=0.0, start=4)
