@@ -13,6 +13,11 @@ from SU2_wrapper.SU2_wrapper import ConfigVar, Config
 import SU2, SU2.io
 from SU2.io import redirect
 
+cfgfilename = 'turb_SA_RAE2822.cfg'
+# Global lists related to with.redirect in SolveWithFolder and DeformWithFolder
+pull = [cfgfilename,'config_CFD.cfg','config_DDC.cfg','config_SOL.cfg']
+link = ['mesh_RAE2822_turb.su2'] 
+
 class SU2_CLCD_Fake(Component):
     def __init__(self, alpha_sweep, nDVvals=38):
         super(SU2_CLCD_Fake,self).__init__()
@@ -44,8 +49,6 @@ class SolveWithFolder(Solve):
 
     def execute(self):
         if self.folder:
-           pull = ['inv_NACA0012.cfg','config_CFD.cfg','config_DDC.cfg','config_SOL.cfg']
-           link = ['mesh_NACA0012_inv.su2'] 
            force = True
            with redirect.folder(self.folder, pull, link, force) as push:
               super(SolveWithFolder,self).execute()
@@ -61,8 +64,6 @@ class DeformWithFolder(Deform):
 
     def execute(self):
         if self.folder:
-           pull = ['inv_NACA0012.cfg','config_CFD.cfg','config_DDC.cfg','config_SOL.cfg']
-           link = ['mesh_NACA0012_inv.su2'] 
            force = True
            with redirect.folder(self.folder, pull, link, force) as push:
               super(DeformWithFolder,self).execute()
@@ -87,7 +88,7 @@ class SU2_CLCD(Assembly):
 
         # Open a config file 
         myConfig = Config()
-        myConfig.read('inv_NACA0012.cfg') 
+        myConfig.read(cfgfilename) 
 
         # Create a master dv_vals array, which will be connected to every deform object this assembly contains
         self.add('dv_vals', Array(np.zeros([self.nDVvals]),size=[self.nDVvals],iotype="in"))
@@ -128,8 +129,9 @@ if __name__ == "__main__":
     else:
 
         # Get range of alphas
-        from assembler import alpha_dist2, alpha_dist10
-        alpha_sweep = alpha_dist2()
+        from assembler import alpha_dist2, alpha_dist10, alpha_orig_sweep
+        #alpha_sweep = alpha_dist2()
+        alpha_sweep = alpha_orig_sweep()
 
         # Run assembly
         model = SU2_CLCD(alpha_sweep)
