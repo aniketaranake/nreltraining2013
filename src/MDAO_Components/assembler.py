@@ -9,7 +9,7 @@ from su2_caller import SU2_CLCD_Fake, SU2_CLCD
 # OpenMDAO imports
 from openmdao.main.api import Component, Assembly, VariableTree
 from openmdao.lib.datatypes.api import Float, Int, Array, VarTree
-from openmdao.lib.drivers.api import SLSQPdriver 
+from openmdao.lib.drivers.api import SLSQPdriver, CONMINdriver, COBYLAdriver
 
 #from custom_opt import SLSQPdriver
 
@@ -70,7 +70,7 @@ class blade_opt(Assembly):
         # Need to have something about if it's fake and russian dolls
         if not (self.fake and self.russianDolls):
             print "adding driver"
-            self.add('driver',SLSQPdriver())
+            self.add('driver',CONMINdriver())
             self.driver.workflow.add(['bem','su2'])   
             # Objective: minimize negative power
             self.driver.add_objective('-bem.power') 
@@ -108,7 +108,5 @@ if __name__=="__main__":
     for item in bo.driver.recorders.__dict__:
         print "\n", item
     print bo.driver.error_code
-    if bo.driver.error_code != 0:
-        print "optimization error:", bo.driver.error_code,": ",bo.driver.error_messages[bo.driver.error_code]
       #print bo.driver.__dict__
 
