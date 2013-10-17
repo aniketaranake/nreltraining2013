@@ -89,16 +89,13 @@ class blade_opt(Assembly):
         self.connect('su2.cls[%d]'%i, 'bem.cls[%d]'%i)
         self.connect('su2.cds[%d]'%i, 'bem.cds[%d]'%i)
 
-    # Specify max iterations
-    self.driver.maxiter = 1000
-
     # Some additional driver parameters
     self.driver.maxiter = 100000
     self.driver.iprint = 1
     self.driver.accuracy = 1e-8
 
 if __name__=="__main__":
-    bo = blade_opt(fake=False, russianDolls=True)
+    bo = blade_opt(fake=True, russianDolls=True)
     bo.run()
     print "Recoder dictionary"
     for item in bo.driver.recorders.__dict__:
