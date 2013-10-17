@@ -2,6 +2,7 @@
 import numpy as np
 from scipy.interpolate import interp1d
 from copy import deepcopy
+import os, os.path
 
 # OpenMDAO imports
 from openmdao.lib.datatypes.api import Float, Int, Array, VarTree, File
@@ -44,7 +45,7 @@ class SU2_CLCD_Fake(Component):
 
 class SolveWithFolder(Solve):
 
-    def __init__(self, folder=None):
+    def __init__(self, folder=None, alpha=None):
 
         self.folder = folder
         super(SolveWithFolder,self).__init__()
@@ -68,6 +69,11 @@ class DeformWithFolder(Deform):
     def __init__(self, folder=None):
 
         self.folder = folder
+
+        os.system('rm -rf %s'%folder)
+        os.system('mkdir %s'%folder)
+        os.system('ln -s ../restart_files/sol%03d/restart_flow.dat ./solution_flow.dat'%alpha
+
         super(DeformWithFolder,self).__init__()
 
     def execute(self):
@@ -111,8 +117,8 @@ class SU2_CLCD(Assembly):
         for j in range(self.nSweep):
 
             # Add the two components
-            this_deform = self.add('deform%d'%j, DeformWithFolder(folder="sweep%d"%j))
-            this_solve  = self.add('solve%d' %j, SolveWithFolder(folder="sweep%d"%j) )
+            this_deform = self.add('deform%d'%j, DeformWithFolder(folder="sweep%d"%j,alpha=self.alpha_sweep[j]))
+            this_solve  = self.add('solve%d' %j, SolveWithFolder(folder="sweep%d"%j,alpha=self.alpha_sweep[j]) )
 
             # Give the deform object our config object
             myConfig.AoA = self.alpha_sweep[j]
