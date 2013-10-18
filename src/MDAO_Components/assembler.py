@@ -45,6 +45,7 @@ class blade_opt(Assembly):
         super(blade_opt, self).__init__()
 
     def configure(self):
+        super(blade_opt, self).configure()
 
         print "In blade_opt configure"
 
@@ -81,6 +82,7 @@ class blade_opt(Assembly):
         # Add Hicks-Henne bump function parameters
         if not self.fake:
             for i in range(self.nDVvals):
+                print "dv ", i
                 self.driver.add_parameter('su2.dv_vals[%d]' % i, low=-.05, high=.05)
 
         if self.russianDolls:
@@ -102,7 +104,7 @@ class blade_opt(Assembly):
         self.driver.accuracy = 1e-8
 
 if __name__=="__main__":
-    bo = blade_opt(fake=False, russianDolls=True)
+    bo = blade_opt(fake=False, russianDolls=False)
     bo.run()
     print "Recoder dictionary"
     for item in bo.driver.recorders.__dict__:
